@@ -1,0 +1,78 @@
+# Customized ignore
+classify/test_data_classification
+detect/test_data_detection
+segment/test_data_segmentation
+
+# ===== OS / Editor =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# VSCode (如果偶尔用)
+.vscode/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# virtualenv
+venv/
+.venv/
+env/
+
+# ===== Logs =====
+*.log
+
+# ===== Data / Models (重点) =====
+data/
+dataset/
+datasets/
+models/
+checkpoints/
+weights/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.tflite
+*.trt
+*.bin
+
+# ===== Cache / Temp =====
+cache/
+tmp/
+temp/
+*.tmp
+
+# ===== Camera / Output =====
+outputs/
+results/
+videos/
+images/
+frames/
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.jpg
+*.png
+
+# ===== Secrets =====
+.env
+*.key
+*.pem
+*.crt
+
+# ===== Board-specific =====
+*.so
+*.a
+*.o
