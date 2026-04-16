@@ -1,0 +1,15 @@
+# ===== CircuitPython =====
+__pycache__/
+*.pyc
+*.pyo
+*.mpy
+
+# ===== CircuitPython device =====
+.Trashes
+.fseventsd/
+.Spotlight-V100
+
+
+# ===== Credentials =====
+settings.toml
+secrets.py
