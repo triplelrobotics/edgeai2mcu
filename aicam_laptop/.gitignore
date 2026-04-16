@@ -1,0 +1,10 @@
+dataset/
+*.mp4
+*.avi
+*.jpg
+*.png
+
+__pycache__/
+*.pyc
+*.pyo
+*.mpy
