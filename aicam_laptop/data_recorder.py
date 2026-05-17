@@ -9,13 +9,8 @@ import numpy as np
 import requests
 from pynput import keyboard
 
-
-# ====== 改这里 ======
-ESP32_BASE_URL = "http://192.168.0.15:5000"
+ESP32_BASE_URL = "http://192.168.0.16:5000"
 AICAM_STREAM_URL = "http://192.168.0.100:5000/video_feed"
-
-# ESP32_BASE_URL = "http://172.20.10.3:5000"
-# AICAM_STREAM_URL = "http://172.20.10.2:5000/video_feed"
 
 DATASET_DIR = "dataset"
 SAVE_FPS = 10.0
@@ -23,8 +18,6 @@ SAVE_WIDTH = 224
 SAVE_HEIGHT = 224
 JPEG_QUALITY = 90
 SHOW_PREVIEW = True
-# ====================
-
 
 VALID_ACTIONS = {"LEFT", "RIGHT", "STRAIGHT", "STOP"}
 
