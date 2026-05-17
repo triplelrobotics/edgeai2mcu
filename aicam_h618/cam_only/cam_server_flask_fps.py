@@ -12,6 +12,8 @@ fps_counter = 0
 fps_start_time = time.time()
 current_fps = 0
 
+fpsTextEnabled = False  # 是否在画面上显示FPS
+
 def get_camera():
     global camera
     if camera is None:
@@ -44,9 +46,10 @@ def generate_frames():
                 fps_counter = 0
                 fps_start_time = current_time
             
-            # 在画面上显示FPS
-            cv2.putText(frame, f'FPS: {current_fps:.1f}', (10, 30), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+            if fpsTextEnabled:
+                # 在画面上显示FPS
+                cv2.putText(frame, f'FPS: {current_fps:.1f}', (10, 30), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
             
             # 编码为JPEG
             ret, buffer = cv2.imencode('.jpg', frame, 
