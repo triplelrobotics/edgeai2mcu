@@ -8,3 +8,5 @@ __pycache__/
 *.pyc
 *.pyo
 *.mpy
+
+line_training/trained_line_models
