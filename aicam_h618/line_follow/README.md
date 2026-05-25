@@ -40,7 +40,7 @@ If the camera stream server runs on another host, replace the stream URL.
 
 Notes:
 
-- The default model path is `../misc/tflite_learn_992353_5_edgetpu.tflite`.
+- The default model path is `tflite_models/model_int8_uint8_edgetpu.tflite`.
 - The client displays raw prediction, smoothed prediction, confidence, inference latency, stream FPS, and stability.
 - To collect frames for debugging a suspicious prediction, use for example:
 

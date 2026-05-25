@@ -14,11 +14,11 @@ from pycoral.utils.edgetpu import load_edgetpu_delegate, make_interpreter
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_MODEL_PATH = BASE_DIR.parent / "misc" / "tflite_learn_992353_5_edgetpu.tflite"
+DEFAULT_MODEL_PATH = BASE_DIR / "tflite_models" / "model_int8_uint8_edgetpu.tflite"
 DEFAULT_SOCKET_PATH = "/tmp/line_tpu.sock"
 DEFAULT_DEVICE = "usb:0"
-INPUT_MEAN = 128.0
-INPUT_STD = 128.0
+INPUT_MEAN = 127.5
+INPUT_STD = 127.5
 
 CONTEXT = {
     "delegate": None,
@@ -78,7 +78,7 @@ def set_quantized_input(interpreter, image_rgb: np.ndarray) -> None:
     scale = params["scales"]
     zero_point = params["zero_points"]
 
-    # Skip quantization: if the model's input quantization parameters match our preprocessing (i.e., scale * INPUT_STD ≈ 1 and zero_point ≈ INPUT_MEAN)
+    # Skip quantization: if the model's input quantization parameters match our preprocessing (i.e., scale * INPUT_STD ~1 and zero_point ~ INPUT_MEAN)
     if np.all(abs(scale * INPUT_STD - 1) < 1e-5) and np.all(abs(INPUT_MEAN - zero_point) < 1e-5):
         common.set_input(interpreter, image_rgb)
         return
