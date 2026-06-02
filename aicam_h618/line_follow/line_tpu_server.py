@@ -168,10 +168,10 @@ def main() -> None:
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL_PATH)
     parser.add_argument("--socket", default=DEFAULT_SOCKET_PATH)
     parser.add_argument("--device", default=DEFAULT_DEVICE)
-    parser.add_argument("--no-reset", action="store_true")
+    parser.add_argument("--reset", action="store_true")
     args = parser.parse_args()
 
-    start_server(args.model, args.socket, args.device, args.no_reset)
+    start_server(args.model, args.socket, args.device, no_reset=not args.reset)
 
 
 if __name__ == "__main__":

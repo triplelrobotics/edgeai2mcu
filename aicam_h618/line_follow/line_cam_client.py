@@ -22,6 +22,7 @@ SOCKET_PATH = "/tmp/line_tpu.sock"
 DEBUG_FRAME_WIDTH = 224
 DEBUG_FRAME_HEIGHT = 224
 DEBUG_JPEG_QUALITY = 90
+MOTOR_ACTIONS = {"LEFT", "RIGHT", "STRAIGHT", "STOP"}
 
 
 class MJPEGStreamReader:
@@ -100,6 +101,44 @@ class StabilityTracker:
         counts = Counter(self.history)
         stable_label, stable_count = counts.most_common(1)[0]
         return stable_label, stable_count / len(self.history)
+
+
+class MotorSignalClient:
+    """Send lane-follow actions to the ESP32 motor controller over HTTP."""
+
+    def __init__(self, base_url: Optional[str], timeout: float, min_interval: float):
+        self.base_url = base_url.rstrip("/") if base_url else None
+        self.timeout = timeout
+        self.min_interval = min_interval
+        self.last_action: Optional[str] = None
+        self.last_sent_ts = 0.0
+
+    def send(self, action: str, score: float, stability: float, force: bool = False) -> None:
+        if not self.base_url:
+            return
+        if action not in MOTOR_ACTIONS:
+            action = "STOP"
+
+        now = time.time()
+        if not force and action == self.last_action and now - self.last_sent_ts < self.min_interval:
+            return
+
+        try:
+            resp = requests.get(
+                f"{self.base_url}/lane",
+                params={
+                    "m": action,
+                    "score": f"{score:.3f}",
+                    "stability": f"{stability:.3f}",
+                },
+                timeout=self.timeout,
+            )
+            resp.raise_for_status()
+            self.last_action = action
+            self.last_sent_ts = now
+            print(f"[motor] sent {action} score={score:.3f} stability={stability:.2f}")
+        except Exception as e:
+            print(f"[motor] send failed: {e}")
 
 
 def recv_response_bytes(sock: socket.socket, n: int) -> bytes:
@@ -253,11 +292,18 @@ def main() -> None:
     parser.add_argument("--save-pred", choices=["LEFT", "RIGHT", "STRAIGHT"], default=None)
     parser.add_argument("--debug-dir", type=Path, default=DEFAULT_DEBUG_DIR)
     parser.add_argument("--save-interval", type=float, default=0.5)
+    parser.add_argument("--motor-url", default=None, help="ESP32 base URL, for example http://192.168.0.123:5000")
+    parser.add_argument("--motor-source", choices=["stable", "raw"], default="stable")
+    parser.add_argument("--motor-min-stability", type=float, default=0.7)
+    parser.add_argument("--motor-interval", type=float, default=0.15)
+    parser.add_argument("--motor-timeout", type=float, default=0.25)
+    parser.add_argument("--no-motor-stop-on-exit", action="store_true")
     args = parser.parse_args()
 
     labels = load_labels(args.labels)
     reader = MJPEGStreamReader(args.stream_url)
     tracker = StabilityTracker(args.stability_window)
+    motor_client = MotorSignalClient(args.motor_url, args.motor_timeout, args.motor_interval)
 
     last_infer_ts = 0.0
     last_inf_ms = 0.0
@@ -305,6 +351,9 @@ def main() -> None:
                         f"stable={last_stable_label} stability={last_stability:.2f} "
                         f"infer={last_inf_ms:.1f}ms"
                     )
+                    motor_label = last_stable_label if args.motor_source == "stable" else last_raw_label
+                    motor_action = motor_label if last_stability >= args.motor_min_stability else "STOP"
+                    motor_client.send(motor_action, last_score, last_stability)
                     last_debug_save_ts = maybe_save_debug_frame(
                         frame,
                         args.debug_dir,
@@ -347,6 +396,8 @@ def main() -> None:
                     continue
 
     finally:
+        if args.motor_url and not args.no_motor_stop_on_exit:
+            motor_client.send("STOP", 0.0, 0.0, force=True)
         reader.stop()
         if not args.no_preview:
             try:

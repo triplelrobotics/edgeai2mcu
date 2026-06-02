@@ -38,6 +38,12 @@ python3 line_cam_client.py --stream-url http://127.0.0.1:5000/video_feed
 
 If the camera stream server runs on another host, replace the stream URL.
 
+To send lane decisions to the ESP32 motor controller, pass the ESP32 server URL:
+
+```bash
+python3 line_cam_client.py --stream-url http://192.168.0.100:5000/video_feed --motor-url http://192.168.0.123:5000
+```
+
 Notes:
 
 - The default model path is `tflite_models/model_int8_uint8_edgetpu.tflite`.
