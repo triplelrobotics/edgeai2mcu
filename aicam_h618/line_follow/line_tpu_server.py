@@ -14,7 +14,8 @@ from pycoral.utils.edgetpu import load_edgetpu_delegate, make_interpreter
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_MODEL_PATH = BASE_DIR / "tflite_models" / "model_int8_uint8_edgetpu.tflite"
+# DEFAULT_MODEL_PATH = BASE_DIR / "tflite_models" / "model_int8_uint8_edgetpu.tflite" # first partially usable model
+DEFAULT_MODEL_PATH = BASE_DIR / "tflite_models" / "model_int8_uint8_edgetpu_run_20260607_133850.tflite" # latest model
 DEFAULT_SOCKET_PATH = "/tmp/line_tpu.sock"
 DEFAULT_DEVICE = "usb:0"
 INPUT_MEAN = 127.5

@@ -1,0 +1,143 @@
+@media screen and (orientation:portrait) {
+    /*  css[竖向定义样式]  */
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: #72788D;
+        color: #000000;
+        font-family: Monospace;
+    }
+
+    h1 {
+        font-size: 18px; /* Adjust the font size as needed */
+        text-align: center; /* Center the text horizontally */
+        background-color: #ffe600
+    }
+
+    #iWantItHere {
+        margin: 10px auto;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .whole {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .whole .data {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .whole .data .content {
+        background: #494368;
+        color: #ffffff;
+        margin-left: 10px;
+        padding: 5px;
+    }
+    .control-panel {
+        border: 6px solid #06f141; /* Border style */
+        border-radius: 10px; /* Rounded corners for aesthetics */
+        padding: 5px; /* Padding inside the border */
+        display: inline-block;
+        position: fixed; /* Position the control panel relative to the viewport */
+        top: 0; /* Position from the top edge of the viewport */
+        left: 0; /* Position from the left edge of the viewport */
+        right: 0; /* Position from the right edge of the viewport */
+        bottom: 0;
+        background-color: rgba(28, 13, 240, 0.5); /* RGBA color with 50% opacity */
+      }
+
+    *{
+        -webkit-touch-callout:none;  /*系统默认菜单被禁用*/
+        -webkit-user-select:none; /*webkit浏览器*/
+        -khtml-user-select:none; /*早期浏览器*/
+        -moz-user-select:none;/*火狐*/
+        -ms-user-select:none; /*IE10*/
+        user-select:none;
+    }
+    input{
+        -webkit-user-select:auto; /*webkit浏览器*/
+    }
+}
+@media screen and (orientation:landscape) {
+    /*   css[横向定义样式]  */
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: #72788D;
+        color: #000000;
+        font-family: Monospace;
+    }
+
+    h1 {
+        font-size: 20px; /* Adjust the font size as needed */
+        text-align: center; /* Center the text horizontally */
+        background-color: #ffe600
+    }
+
+    #iWantItHere {
+        float: right; 
+        margin: 10px auto;
+        text-align: center;
+        margin-right: 50px;
+        margin-top: 10px;
+    }
+
+    .whole {
+        float: left; 
+        display: flex;
+        flex-direction: column;
+        margin-left: 50px;
+        margin-top: 10px;
+    }
+
+    .whole .data {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .whole .data .content {
+        background: #494368;
+        color: #ffffff;
+        margin-left: 10px;
+        padding: 5px;
+    }
+    .control-panel {
+        border: 6px solid #06f141; /* Border style */
+        border-radius: 10px; /* Rounded corners for aesthetics */
+        padding: 5px; /* Padding inside the border */
+        display: inline-block;
+        position: fixed; /* Position the control panel relative to the viewport */
+        top: 0; /* Position from the top edge of the viewport */
+        left: 0; /* Position from the left edge of the viewport */
+        right: 0; /* Position from the right edge of the viewport */
+        bottom: 0;
+        background-color: rgba(28, 13, 240, 0.5); /* RGBA color with 50% opacity */
+      }
+    
+    *{
+        -webkit-touch-callout:none;  /*系统默认菜单被禁用*/
+        -webkit-user-select:none; /*webkit浏览器*/
+        -khtml-user-select:none; /*早期浏览器*/
+        -moz-user-select:none;/*火狐*/
+        -ms-user-select:none; /*IE10*/
+        user-select:none;
+    }
+    input{
+        -webkit-user-select:auto; /*webkit浏览器*/
+    }
+}
