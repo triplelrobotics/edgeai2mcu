@@ -25,6 +25,9 @@ build/
 *.pem
 *.crt
 
+# ===== Removable CircuitPython drives =====
+/aicam_esp32/
+
 # ===== ML Models / Large files =====
 *.pt
 *.pth
