@@ -12,7 +12,7 @@ fps_counter = 0
 fps_start_time = time.time()
 current_fps = 0
 
-fpsTextEnabled = False  # 是否在画面上显示FPS
+fpsTextEnabled = True  # 是否在画面上显示FPS
 
 def get_camera():
     global camera
