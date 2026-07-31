@@ -163,6 +163,7 @@ cython_debug/
 classify/test_data_classification
 detect/test_data_detection
 segment/test_data_segmentation
+line_follow_2/assets
 
 # ===== OS / Editor =====
 .DS_Store
