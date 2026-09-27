@@ -22,7 +22,7 @@ ESP32 car IP:           set this to its address on the same network
 Start the TPU inference service:
 
 ```bash
-cd aicam_h618/line_follow_2
+cd aicam_h618/app/line_follow_2
 python3 line_tpu_service.py
 ```
 

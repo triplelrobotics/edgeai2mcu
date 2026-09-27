@@ -12,7 +12,7 @@ Architecture:
 Typical run on the H618:
 
 ```bash
-cd aicam_h618/line_follow
+cd aicam_h618/app/line_follow
 python3 line_stream_server.py
 ```
 
@@ -25,14 +25,14 @@ python3 line_stream_server.py --advertise-ip 192.168.0.100
 In another terminal:
 
 ```bash
-cd aicam_h618/line_follow
+cd aicam_h618/app/line_follow
 python3 line_tpu_server.py
 ```
 
 In a third terminal:
 
 ```bash
-cd aicam_h618/line_follow
+cd aicam_h618/app/line_follow
 python3 line_cam_client.py --stream-url http://127.0.0.1:5000/video_feed
 ```
 
