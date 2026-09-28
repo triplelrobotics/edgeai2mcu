@@ -2,6 +2,7 @@ import argparse
 import time
 import urllib.request
 import os
+from pathlib import Path
 
 import numpy as np
 from PIL import Image
@@ -14,6 +15,8 @@ from pycoral.utils.edgetpu import load_edgetpu_delegate
 # TODO: configure for popular-100k model and its input.
 
 DEVICE = 'usb:0'
+AICAM_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_DATA_FOLDER = AICAM_ROOT / 'var' / 'cache' / 'coral' / 'classify'
 MODEL_LIST = {
 	'efficientnet-edgetpu-l': {'fn': 'efficientnet-edgetpu-L_quant_edgetpu.tflite', 'im_sz': 300, 'labl': 'imagenet'},
 	'efficientnet-edgetpu-m': {'fn': 'efficientnet-edgetpu-M_quant_edgetpu.tflite', 'im_sz': 240, 'labl': 'imagenet'},
@@ -144,7 +147,7 @@ def run_inference(models_to_test, data_folder, top_k, threshold, count, input_me
 def main():
 	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser.add_argument('-m', '--model_name', required=True, help='inference model name.') # model name, matching MODEL_LIST dict above; if 'all', test all models at once.
-	parser.add_argument('-d', '--data_folder', type=str, default='test_data_classification', help='data folder name')
+	parser.add_argument('-d', '--data_folder', type=str, default=str(DEFAULT_DATA_FOLDER), help='data folder name')
 	parser.add_argument('-k', '--top_k', type=int, default=1, help='Max number of classification results')
 	parser.add_argument('-t', '--threshold', type=float, default=0.0, help='Classification score threshold')
 	parser.add_argument('-c', '--count', type=int, default=5, help='Number of times to run inference')

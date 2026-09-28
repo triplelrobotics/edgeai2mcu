@@ -29,6 +29,7 @@ python3 examples/semantic_segmentation.py \
 """
 
 import argparse
+from pathlib import Path
 
 import numpy as np
 from PIL import Image
@@ -120,6 +121,13 @@ BODYPIX_PARTS = {
 }
 
 DEVICE = 'usb:0'
+AICAM_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_DATA_FOLDER = AICAM_ROOT / 'var' / 'cache' / 'coral' / 'segment'
+POSENET_DELEGATE_PATH = Path('posenet_lib') / 'aarch64' / 'posenet_decoder.so'
+POSENET_DELEGATE_URL = (
+	'https://raw.githubusercontent.com/google-coral/project-bodypix/master/'
+	'posenet_lib/aarch64/posenet_decoder.so'
+)
 MODEL_LIST = {
 		'unet-mobilenet-v2-s': {'fn': 'keras_post_training_unet_mv2_128_quant_edgetpu.tflite', 'im_sz': 128, 'labl': 'pet'},
 		'unet-mobilenet-v2-l': {'fn': 'keras_post_training_unet_mv2_256_quant_edgetpu.tflite', 'im_sz': 256, 'labl': 'pet'},
@@ -168,8 +176,16 @@ MODEL_LIST = {
 }
 
 PRELOADED_DELEGATE = load_edgetpu_delegate(options={'device': DEVICE})
-POSENET_DELEGATE = tflite.load_delegate('test_data_segmentation/posenet_lib/aarch64/posenet_decoder.so')
-print("delegates successfully loaded")
+print("Edge TPU delegate successfully loaded")
+
+
+def load_posenet_delegate(data_folder):
+	delegate_path = Path(data_folder) / POSENET_DELEGATE_PATH
+	if not delegate_path.is_file():
+		delegate_path.parent.mkdir(parents=True, exist_ok=True)
+		print(f"downloading PoseNet delegate from {POSENET_DELEGATE_URL}...")
+		urllib.request.urlretrieve(POSENET_DELEGATE_URL, delegate_path)
+	return tflite.load_delegate(str(delegate_path))
 
 # label index mapped to varying colors (total 256 colors available, maximum 256 labels applicable), 
 # e.g. 0 -> RGB(0, 0, 0), 1 -> RGB(128, 0, 0), etc.
@@ -317,7 +333,7 @@ def prepare_data(models_to_test, data_folder):
 	
 	print(f"all files are ready in {data_folder} folder, ready to run inference ...")
 
-def run_inference(models_to_test, data_folder, keep_aspect_ratio):
+def run_inference(models_to_test, data_folder, keep_aspect_ratio, posenet_delegate=None):
 	for model_name in models_to_test:
 		model_filename = MODEL_LIST[model_name]['fn']
 		label_name = MODEL_LIST[model_name]['labl']
@@ -336,9 +352,11 @@ def run_inference(models_to_test, data_folder, keep_aspect_ratio):
 
 		# create interpreter
 		if label_name == 'bodypix': # use both delegates for BodyPix models
+			if posenet_delegate is None:
+				raise RuntimeError('PoseNet delegate is required for BodyPix models')
 			interpreter = tflite.Interpreter(
 				model_path=model_filepath, 
-				experimental_delegates=[PRELOADED_DELEGATE, POSENET_DELEGATE]
+				experimental_delegates=[PRELOADED_DELEGATE, posenet_delegate]
 			)
 		else:
 			interpreter = make_interpreter(model_filepath, device=DEVICE, delegate=PRELOADED_DELEGATE)
@@ -386,7 +404,7 @@ def run_inference(models_to_test, data_folder, keep_aspect_ratio):
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--model_name', required=True, help='a model nickname, e.g. "deeplabv3-mobilenet-v2-s"')
-	parser.add_argument('--data_folder', type=str, default='test_data_segmentation', help='data folder for downloading models and tesst images')
+	parser.add_argument('--data_folder', type=str, default=str(DEFAULT_DATA_FOLDER), help='data folder for downloading models and test images')
 	parser.add_argument('--keep_aspect_ratio', action='store_true', default=False, help=(
 					'keep the image aspect ratio when down-sampling the image by adding '
 					'black pixel padding (zeros) on bottom or right. '
@@ -413,9 +431,11 @@ def main():
 
 	# prepare data
 	prepare_data(models_to_test, args.data_folder)
+	uses_bodypix = any(MODEL_LIST[name]['labl'] == 'bodypix' for name in models_to_test)
+	posenet_delegate = load_posenet_delegate(args.data_folder) if uses_bodypix else None
 
 	# run inference 
-	run_inference(models_to_test, args.data_folder, args.keep_aspect_ratio)
+	run_inference(models_to_test, args.data_folder, args.keep_aspect_ratio, posenet_delegate)
 
 if __name__ == '__main__':
 	main()
