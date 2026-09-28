@@ -4,6 +4,8 @@ import struct
 import numpy as np
 import subprocess
 import time
+from pathlib import Path
+
 from pycoral.adapters import classify
 from pycoral.adapters import common
 from pycoral.utils.edgetpu import make_interpreter, load_edgetpu_delegate
@@ -11,7 +13,8 @@ from pycoral.utils.edgetpu import make_interpreter, load_edgetpu_delegate
 # --- 服务配置 ---
 SOCKET_PATH = "/tmp/tpu_service.sock"
 DEVICE = 'usb:0'
-DATA_FOLDER = 'test_data_classification'
+AICAM_ROOT = Path(__file__).resolve().parents[2]
+DATA_FOLDER = AICAM_ROOT / "var" / "cache" / "coral" / "classify"
 INPUT_MEAN = 128.0 # 对应原代码参数
 INPUT_STD = 128.0  # 对应原代码参数
 
@@ -31,7 +34,7 @@ CONTEXT = {
 }
 
 def get_interpreter(model_fn):
-    model_path = os.path.join(DATA_FOLDER, model_fn)
+    model_path = DATA_FOLDER / model_fn
     if CONTEXT['current_model_fn'] == model_fn and CONTEXT['interpreter']:
         return CONTEXT['interpreter']
 
@@ -41,7 +44,7 @@ def get_interpreter(model_fn):
         CONTEXT['delegate'] = load_edgetpu_delegate(options={'device': DEVICE})
     
     # 重新绑定解释器
-    CONTEXT['interpreter'] = make_interpreter(model_path, device=DEVICE, delegate=CONTEXT['delegate'])
+    CONTEXT['interpreter'] = make_interpreter(str(model_path), device=DEVICE, delegate=CONTEXT['delegate'])
     CONTEXT['interpreter'].allocate_tensors()
     CONTEXT['current_model_fn'] = model_fn
     return CONTEXT['interpreter']

@@ -13,7 +13,8 @@ from pycoral.utils.edgetpu import make_interpreter, load_edgetpu_delegate
 # --- 服务配置 ---
 SOCKET_PATH = "/tmp/tpu_detect.sock"
 BASE_DIR = Path(__file__).resolve().parent
-DATA_FOLDER = BASE_DIR / "test_data_detection"
+AICAM_ROOT = BASE_DIR.parent.parent
+DATA_FOLDER = AICAM_ROOT / "var" / "cache" / "coral" / "detect"
 DEFAULT_MODEL_FN = "ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite" # 默认用你说的 ssd-mobilenet-v2
 DEVICE = "usb:0"  # 需要的话改成 usb 或 usb:1
 

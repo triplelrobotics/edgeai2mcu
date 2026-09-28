@@ -34,6 +34,7 @@ import os
 import argparse
 import time
 import urllib.request # for downloading files
+from pathlib import Path
 
 from PIL import Image
 from PIL import ImageDraw
@@ -49,6 +50,8 @@ from pycoral.utils.edgetpu import load_edgetpu_delegate  # do this to load lib o
 
 
 DEVICE = 'usb'
+AICAM_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_DATA_FOLDER = AICAM_ROOT / "var" / "cache" / "coral" / "detect"
 # warning: efficientdet-lite3x is not compatible with usb.
 MODEL_LIST = {'ssd-mobilenet-v1':{'fn': 'ssd_mobilenet_v1_coco_quant_postprocess_edgetpu.tflite', 'im_sz': 300, 'labl': 'coco'},
                 'ssd-mobilenet-v2': {'fn': 'ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite', 'im_sz': 300, 'labl': 'coco'},
@@ -160,7 +163,7 @@ def main():
   parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument('-m', '--model_name', required=True, help='inference model name.')
   # parser.add_argument('-i', '--input', required=True, help='File path of image to process')
-  parser.add_argument('-i', '--data_folder', default='test_data_detection', help='data folder name')
+  parser.add_argument('-i', '--data_folder', default=str(DEFAULT_DATA_FOLDER), help='data folder name')
   # parser.add_argument('-l', '--labels', help='File path of labels file')
   parser.add_argument('-t', '--threshold', type=float, default=0.4, help='Score threshold for detected objects')
   # parser.add_argument('-o', '--output', help='File path for the result image with annotations')

@@ -4,12 +4,16 @@ import urllib.request
 import os
 import socket
 import struct
+from pathlib import Path
+
 import numpy as np
 from PIL import Image
 from pycoral.utils.dataset import read_label_file
 
 # --- 核心配置：必须与服务端 MODEL_LIST 对应 ---
 SOCKET_PATH = "/tmp/tpu_service.sock"
+AICAM_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_DATA_FOLDER = AICAM_ROOT / "var" / "cache" / "coral" / "classify"
 MODEL_LIST = {
     'efficientnet-edgetpu-l': {'fn': 'efficientnet-edgetpu-L_quant_edgetpu.tflite', 'im_sz': 300, 'labl': 'imagenet'},
     'efficientnet-edgetpu-m': {'fn': 'efficientnet-edgetpu-M_quant_edgetpu.tflite', 'im_sz': 240, 'labl': 'imagenet'},
@@ -77,7 +81,7 @@ def prepare_data(models_to_test, data_folder):
             file_path = os.path.join(data_folder, fn)
             if not os.path.exists(file_path):
                 print(f"正在准备下载 {fn}...")
-                url = f"raw.githubusercontent.com{fn}"
+                url = f"https://raw.githubusercontent.com/google-coral/test_data/master/{fn}"
                 urllib.request.urlretrieve(url, file_path)
     print("所有测试数据已就绪。")
 
@@ -113,7 +117,7 @@ def run_inference(models_to_test, data_folder, top_k, threshold, count):
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-m', '--model_name', required=True, help='模型名称或输入 all')
-    parser.add_argument('-d', '--data_folder', default='test_data_classification')
+    parser.add_argument('-d', '--data_folder', default=str(DEFAULT_DATA_FOLDER))
     parser.add_argument('-k', '--top_k', type=int, default=1)
     parser.add_argument('-t', '--threshold', type=float, default=0.0)
     parser.add_argument('-c', '--count', type=int, default=5)

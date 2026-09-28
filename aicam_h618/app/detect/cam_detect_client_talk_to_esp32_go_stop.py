@@ -83,7 +83,8 @@ MODEL_NAME = "ssd-mobilenet-v2"
 MODEL_FN = MODEL_LIST[MODEL_NAME]["fn"]
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "test_data_detection"
+AICAM_ROOT = BASE_DIR.parent.parent
+DATA_DIR = AICAM_ROOT / "var" / "cache" / "coral" / "detect"
 LABEL_PATH = DATA_DIR / "coco_labels.txt"
 
 THRESHOLD = 0.3
