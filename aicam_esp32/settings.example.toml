@@ -1,0 +1,5 @@
+# Copy this file to settings.toml and replace the placeholder values.
+
+CIRCUITPY_WIFI_SSID = "YOUR_WIFI_SSID"
+CIRCUITPY_WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"
+HOSTNAME = "aicam-esp32"
