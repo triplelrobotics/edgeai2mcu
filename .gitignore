@@ -44,13 +44,13 @@ sftp-config.json.bak
 *.tflite
 *.trt
 
-# H618 downloadable test data and runtime output
+# H618 downloadable test data and mutable device data
 /aicam_h618/app/classify/test_data_classification/
 /aicam_h618/app/detect/test_data_detection/
 /aicam_h618/app/segment/test_data_segmentation/
 /aicam_h618/app/line_follow/debug_frames/
 /aicam_h618/app/line_follow_2/assets/
-/aicam_h618/runtime/
+/aicam_h618/var/
 
 # H618 deployed models are restored and managed by Git LFS
 !/aicam_h618/app/line_follow/tflite_models/

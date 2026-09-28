@@ -15,9 +15,10 @@ import requests
 
 
 BASE_DIR = Path(__file__).resolve().parent
+AICAM_ROOT = BASE_DIR.parent.parent
 DEFAULT_STREAM_URL = "http://127.0.0.1:5000/video_feed"
 DEFAULT_LABELS_PATH = BASE_DIR / "labels.txt"
-DEFAULT_DEBUG_DIR = BASE_DIR / "debug_frames"
+DEFAULT_DEBUG_DIR = AICAM_ROOT / "var" / "captures" / "line_follow"
 SOCKET_PATH = "/tmp/line_tpu.sock"
 DEBUG_FRAME_WIDTH = 224
 DEBUG_FRAME_HEIGHT = 224
