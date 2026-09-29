@@ -7,7 +7,7 @@
   "password": "REPLACE_WITH_DEVICE_PASSWORD",
   "remotePath": "/workspace/aicam_coral/app",
   "context": "./aicam_h618/app",
-  "uploadOnSave": true,
+  "uploadOnSave": false,
   "useTempFile": false,
   "openSsh": false,
   "syncOption": {
