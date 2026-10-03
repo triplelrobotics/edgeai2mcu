@@ -57,7 +57,7 @@ sftp-config.json.bak
 /aicam_esp32/.Spotlight-V100/
 /aicam_esp32/.metadata_never_index
 /aicam_esp32/System Volume Information/
-/aicam_esp32/boot_out.txt
+/aicam_esp32/boot_out*.txt
 
 # CircuitPython secrets
 /aicam_esp32/settings.toml
