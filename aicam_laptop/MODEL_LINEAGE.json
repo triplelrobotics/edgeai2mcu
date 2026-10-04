@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "datasets": {
+    "line_follow_v1_base_20260518": {
+      "path": "dataset/line_follow_v1_base_20260518",
+      "parent": null,
+      "status": "historical_training_input",
+      "image_files": 1182,
+      "unique_image_contents": 1003,
+      "known_cross_split_hashes": 103
+    },
+    "line_follow_v2_base_plus_hard_right_20260607": {
+      "path": "dataset/line_follow_v2_base_plus_hard_right_20260607",
+      "parent": "line_follow_v1_base_20260518",
+      "status": "current_deployed_training_input",
+      "image_files": 1265,
+      "unique_image_contents": 1086,
+      "known_cross_split_hashes": 103
+    },
+    "line_follow_v3_base_plus_hard_right_dedup_20261003": {
+      "path": "dataset/line_follow_v3_base_plus_hard_right_dedup_20261003",
+      "parent": "line_follow_v2_base_plus_hard_right_20260607",
+      "status": "next_training_candidate",
+      "image_files": 1086,
+      "unique_image_contents": 1086,
+      "known_cross_split_hashes": 0
+    }
+  },
+  "models": {
+    "previous_deployed": {
+      "training_dataset": "line_follow_v1_base_20260518",
+      "float_run": "run_20260518_153829",
+      "qat_run": "run_20260518_162849",
+      "deployed_path": "aicam_h618/app/line_follow/tflite_models/model_int8_uint8_edgetpu.tflite",
+      "sha256": "a863ca2d9fc98d58b346e6f2c750252e988979f1486bff9545a5a51b4f89a7ac",
+      "edge_tpu_compiler_version": "16.0.384591198",
+      "status": "previous"
+    },
+    "current_deployed": {
+      "training_dataset": "line_follow_v2_base_plus_hard_right_20260607",
+      "float_run": "run_20260607_133611",
+      "qat_run": "run_20260607_133850",
+      "deployed_path": "aicam_h618/app/line_follow/tflite_models/model_int8_uint8_edgetpu_run_20260607_133850.tflite",
+      "sha256": "d28923606315c8dc7227264009f2b5cf160d22bd6531097dbd8f979d0339eb05",
+      "edge_tpu_compiler_version": "16.0.384591198",
+      "status": "current"
+    }
+  }
+}
