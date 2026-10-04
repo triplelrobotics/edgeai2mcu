@@ -139,9 +139,20 @@ def default_run_dir():
     return RUNS_DIR / time.strftime("run_%Y%m%d_%H%M%S")
 
 
+def write_run_pointer(pointer_path: Path, run_dir: Path) -> None:
+    """Write a repo-relative run path so the pointer survives moving computers."""
+
+    relative = os.path.relpath(run_dir.resolve(), pointer_path.parent.resolve())
+    pointer_path.write_text(relative + "\n", encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-dir", type=Path, default=Path("dataset/line_training_ready"))
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=Path("dataset/line_follow_v3_base_plus_hard_right_dedup_20261003"),
+    )
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--seed", type=int, default=42)
@@ -159,8 +170,8 @@ def main():
     tf.keras.utils.set_random_seed(args.seed)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     LATEST_RUN_PATH.parent.mkdir(parents=True, exist_ok=True)
-    LATEST_RUN_PATH.write_text(str(args.output_dir.resolve()), encoding="utf-8")
-    LATEST_FLOAT_RUN_PATH.write_text(str(args.output_dir.resolve()), encoding="utf-8")
+    write_run_pointer(LATEST_RUN_PATH, args.output_dir)
+    write_run_pointer(LATEST_FLOAT_RUN_PATH, args.output_dir)
     print(f"output_dir: {args.output_dir}")
 
     train_ds = make_dataset(args.data_dir, "train", args.batch_size, True, args.seed)
