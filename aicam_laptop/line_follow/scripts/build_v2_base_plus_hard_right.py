@@ -78,9 +78,17 @@ def write_labels(out_dir: Path) -> None:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base-dir", type=Path, default=Path("dataset/line_training_ready"))
-    parser.add_argument("--hard-dir", type=Path, default=Path("dataset/hard_examples"))
-    parser.add_argument("--output-dir", type=Path, default=Path("dataset/line_training_ready_hard_right_balanced"))
+    parser.add_argument("--base-dir", type=Path, default=Path("dataset/line_follow_v1_base_20260518"))
+    parser.add_argument(
+        "--hard-dir",
+        type=Path,
+        default=Path("dataset/source_material/hard_examples_20260607"),
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("dataset/line_follow_v2_base_plus_hard_right_rebuilt"),
+    )
     parser.add_argument("--hard-val-ratio", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--balance", action="store_true", help="Oversample train/val classes to equal counts")
