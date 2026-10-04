@@ -48,8 +48,8 @@ sftp-config.json.bak
 
 # Laptop datasets and training outputs
 /aicam_laptop/dataset/
-/aicam_laptop/edgeimpulse_dataset/
-/aicam_laptop/line_training/trained_line_models/
+/aicam_laptop/line_follow/trained_line_models/
+/aicam_laptop/var/
 
 # CircuitPython-generated filesystem metadata
 /aicam_esp32/.Trashes/

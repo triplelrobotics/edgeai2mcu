@@ -1,6 +1,4 @@
-# A simple tool to record synchronized video frames and control actions for training a self-driving model.
-# This is a upgraded verison of the original data_recorder.py
-# Use this one.
+"""Record synchronized camera frames and control actions for line-follow training."""
 import csv
 import os
 import queue

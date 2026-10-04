@@ -26,11 +26,25 @@ LATEST_RUN_PATH = BASE_DIR / "trained_line_models" / "latest_run.txt"
 LATEST_FLOAT_RUN_PATH = BASE_DIR / "trained_line_models" / "latest_float_run.txt"
 
 
+def read_run_pointer(pointer_path: Path) -> Path:
+    """Resolve a run pointer relative to the file that stores it."""
+
+    value = Path(pointer_path.read_text(encoding="utf-8").strip())
+    return value if value.is_absolute() else pointer_path.parent / value
+
+
+def write_run_pointer(pointer_path: Path, run_dir: Path) -> None:
+    """Write a repo-relative run path so the pointer survives moving computers."""
+
+    relative = os.path.relpath(run_dir.resolve(), pointer_path.parent.resolve())
+    pointer_path.write_text(relative + "\n", encoding="utf-8")
+
+
 def latest_or_legacy_float_dir():
     """Find the newest float32 model directory to use as the QAT starting point."""
 
     if LATEST_FLOAT_RUN_PATH.exists():
-        latest = Path(LATEST_FLOAT_RUN_PATH.read_text(encoding="utf-8").strip())
+        latest = read_run_pointer(LATEST_FLOAT_RUN_PATH)
         if (latest / "best_float32.keras").exists():
             return latest
     legacy = BASE_DIR / "trained_line_models" / "mobilenetv2_96_a035_extpre"
@@ -184,7 +198,11 @@ def configure_trainable_layers(model, mode: str, last_n: int):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-dir", type=Path, default=Path("dataset/line_training_ready"))
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=Path("dataset/line_follow_v3_base_plus_hard_right_dedup_20261003"),
+    )
     parser.add_argument("--float-model-dir", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--batch-size", type=int, default=32)
@@ -205,7 +223,7 @@ def main():
     tf.keras.utils.set_random_seed(args.seed)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     LATEST_RUN_PATH.parent.mkdir(parents=True, exist_ok=True)
-    LATEST_RUN_PATH.write_text(str(args.output_dir.resolve()), encoding="utf-8")
+    write_run_pointer(LATEST_RUN_PATH, args.output_dir)
 
     print(f"float_model_dir: {args.float_model_dir}")
     print(f"output_dir: {args.output_dir}")

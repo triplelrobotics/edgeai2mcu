@@ -22,11 +22,18 @@ BASE_DIR = Path(__file__).resolve().parent
 LATEST_RUN_PATH = BASE_DIR / "trained_line_models" / "latest_run.txt"
 
 
+def read_run_pointer(pointer_path: Path) -> Path:
+    """Resolve a run pointer relative to the file that stores it."""
+
+    value = Path(pointer_path.read_text(encoding="utf-8").strip())
+    return value if value.is_absolute() else pointer_path.parent / value
+
+
 def default_model_dir():
     """Return the latest timestamped training run, falling back to the legacy output directory."""
 
     if LATEST_RUN_PATH.exists():
-        latest = Path(LATEST_RUN_PATH.read_text(encoding="utf-8").strip())
+        latest = read_run_pointer(LATEST_RUN_PATH)
         if latest.exists():
             return latest
     return BASE_DIR / "trained_line_models" / "mobilenetv2_96_a035_extpre"
@@ -171,7 +178,11 @@ def evaluate_tflite(model_path: Path, data_dir: Path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-dir", type=Path, default=Path("dataset/line_training_ready"))
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=Path("dataset/line_follow_v3_base_plus_hard_right_dedup_20261003"),
+    )
     parser.add_argument("--model-dir", type=Path, default=None)
     parser.add_argument("--keras-model", default=None)
     parser.add_argument("--rep-count", type=int, default=300)

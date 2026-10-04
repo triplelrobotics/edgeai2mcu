@@ -256,7 +256,7 @@ def draw_overlay(frame, raw_label, stable_label, stability, score, inf_ms, strea
 
 
 def maybe_save_debug_frame(frame_bgr, debug_dir, save_pred, raw_label, stable_label, score, min_interval, last_save_ts):
-    """Save a 224x224 JPEG like data_recorder_edit.py when raw prediction matches save_pred."""
+    """Save a 224x224 JPEG like aicam_laptop/line_follow/record_base_samples.py."""
 
     if not save_pred or raw_label != save_pred:
         return last_save_ts
