@@ -11,7 +11,7 @@ import requests
 
 
 DEFAULT_STREAM_URL = "http://192.168.0.100:5000/video_feed"
-DEFAULT_OUTPUT_DIR = Path("dataset") / "hard_examples"
+DEFAULT_OUTPUT_DIR = Path("datasets") / "hard_examples"
 CLASS_NAMES = ("LEFT", "RIGHT", "STRAIGHT")
 SAVE_KEYS = {
     ord("l"): "LEFT",

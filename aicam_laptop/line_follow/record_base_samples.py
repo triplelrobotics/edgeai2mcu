@@ -18,7 +18,7 @@ from pynput import keyboard
 # =========================
 ESP32_BASE_URL = "http://192.168.0.16:5000"
 STREAM_URL = "http://192.168.0.100:5000/video_feed"  # replace with your H618 stream endpoint
-DATASET_DIR = "dataset"
+DATASET_DIR = "datasets"
 SAVE_FPS = 10.0
 JPEG_QUALITY = 90
 FRAME_WIDTH = 224   # saved width

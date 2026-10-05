@@ -14,9 +14,10 @@ tf.get_logger().setLevel("ERROR")
 CLASS_NAMES = ["LEFT", "RIGHT", "STRAIGHT"]
 IMAGE_SIZE = (96, 96)
 BASE_DIR = Path(__file__).resolve().parent
-RUNS_DIR = BASE_DIR / "trained_line_models" / "mobilenetv2_96_a035_extpre"
-LATEST_RUN_PATH = BASE_DIR / "trained_line_models" / "latest_run.txt"
-LATEST_FLOAT_RUN_PATH = BASE_DIR / "trained_line_models" / "latest_float_run.txt"
+MODELS_DIR = BASE_DIR.parent / "trained_models" / "line_follow"
+RUNS_DIR = MODELS_DIR / "mobilenetv2_96_a035_extpre"
+LATEST_RUN_PATH = MODELS_DIR / "latest_run.txt"
+LATEST_FLOAT_RUN_PATH = MODELS_DIR / "latest_float_run.txt"
 
 
 def make_dataset(data_dir: Path, split: str, batch_size: int, shuffle: bool, seed: int):
@@ -151,7 +152,7 @@ def main():
     parser.add_argument(
         "--data-dir",
         type=Path,
-        default=Path("dataset/line_follow_v3_base_plus_hard_right_dedup_20261003"),
+        default=Path("datasets/line_follow_v3_base_plus_hard_right_dedup_20261003"),
     )
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--batch-size", type=int, default=32)

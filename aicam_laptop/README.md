@@ -8,10 +8,11 @@ TPU compilation. Edge Impulse is not part of the active workflow.
 
 ```text
 aicam_laptop/
-├── dataset/                 # Source material and versioned datasets (DVC)
+├── datasets/                # Source material and versioned datasets (DVC)
 ├── line_follow/             # Frequently used collection and model scripts
-│   ├── scripts/             # Occasional dataset reconstruction scripts
-│   └── trained_line_models/ # Generated training outputs (DVC, Git-ignored)
+│   └── scripts/             # Occasional dataset reconstruction scripts
+├── trained_models/          # Generated training outputs (DVC, Git-ignored)
+│   └── line_follow/         # Line-follow training runs and latest-run pointers
 ├── tools/edge_tpu_compiler/ # Platform-specific Coral compiler wrapper
 └── var/archive/             # Ignored retired scripts and local history
 ```
@@ -20,6 +21,20 @@ Dataset lineage is documented in `DATASETS.md`. The relationship between
 training runs and deployed models is recorded in `MODEL_LINEAGE.json`.
 
 Run the commands below from `aicam_laptop/`.
+
+## Restore artifacts
+
+`datasets/` and `trained_models/` are tracked by DVC. After a
+fresh clone and Git LFS checkout, restore them with:
+
+```bash
+dvc pull
+dvc status
+```
+
+This requires the repository's DVC remote to be configured and accessible.
+Git stores the small `.dvc` metadata files; the artifact contents live in the
+DVC remote and local cache.
 
 ## Collect data
 
@@ -35,7 +50,7 @@ Use `record_hard_samples.py` to save selected field-test frames directly into
 
 ```bash
 python3 line_follow/record_hard_samples.py \
-  --output-dir dataset/source_material/hard_examples_YYYYMMDD
+  --output-dir datasets/source_material/hard_examples_YYYYMMDD
 ```
 
 Neither recorder is required when retraining from an existing dataset.
@@ -49,13 +64,13 @@ maintenance tools, not steps that must run before every training session:
 python3 line_follow/scripts/build_v2_base_plus_hard_right.py
 
 python3 line_follow/scripts/build_v3_dedup.py \
-  --output dataset/line_follow_v3_rebuilt
+  --output datasets/line_follow_v3_rebuilt
 ```
 
 ## Train and export
 
 The default dataset is
-`dataset/line_follow_v3_base_plus_hard_right_dedup_20261003/`.
+`datasets/line_follow_v3_base_plus_hard_right_dedup_20261003/`.
 
 ```bash
 python3 line_follow/train_float32.py
@@ -67,10 +82,10 @@ To reproduce the currently deployed model lineage, explicitly select v2:
 
 ```bash
 python3 line_follow/train_float32.py \
-  --data-dir dataset/line_follow_v2_base_plus_hard_right_20260607
+  --data-dir datasets/line_follow_v2_base_plus_hard_right_20260607
 ```
 
-Training outputs are written under `line_follow/trained_line_models/`. Latest-run
+Training outputs are written under `trained_models/line_follow/`. Latest-run
 pointers use relative paths so they remain valid when the repository is moved or
 cloned on another computer.
 
@@ -84,7 +99,7 @@ an additional Edge TPU compilation step:
 
 ```bash
 tools/edge_tpu_compiler/compile.sh \
-  line_follow/trained_line_models/mobilenetv2_96_a035_extpre_qat/run_YYYYMMDD_HHMMSS/model_int8_uint8.tflite
+  trained_models/line_follow/mobilenetv2_96_a035_extpre_qat/run_YYYYMMDD_HHMMSS/model_int8_uint8.tflite
 ```
 
 The wrapper builds and runs the Linux compiler container automatically. The
@@ -96,7 +111,7 @@ can be overridden with `AICAM_EDGETPU_IMAGE` and `AICAM_DOCKER_PLATFORM`.
 
 - Git tracks source code, documentation, configuration examples, and selected
   deployment models.
-- DVC is intended to track `dataset/` and reproducible training artifacts.
+- DVC tracks `datasets/` and `trained_models/`.
 - `var/` is ignored local storage and is not required to restore the active
   workflow.
 - The immutable Lenovo snapshot remains the recovery source for material moved

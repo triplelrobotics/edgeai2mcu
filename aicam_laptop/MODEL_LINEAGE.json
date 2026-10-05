@@ -2,7 +2,7 @@
   "schema_version": 1,
   "datasets": {
     "line_follow_v1_base_20260518": {
-      "path": "dataset/line_follow_v1_base_20260518",
+      "path": "datasets/line_follow_v1_base_20260518",
       "parent": null,
       "status": "historical_training_input",
       "image_files": 1182,
@@ -10,7 +10,7 @@
       "known_cross_split_hashes": 103
     },
     "line_follow_v2_base_plus_hard_right_20260607": {
-      "path": "dataset/line_follow_v2_base_plus_hard_right_20260607",
+      "path": "datasets/line_follow_v2_base_plus_hard_right_20260607",
       "parent": "line_follow_v1_base_20260518",
       "status": "current_deployed_training_input",
       "image_files": 1265,
@@ -18,7 +18,7 @@
       "known_cross_split_hashes": 103
     },
     "line_follow_v3_base_plus_hard_right_dedup_20261003": {
-      "path": "dataset/line_follow_v3_base_plus_hard_right_dedup_20261003",
+      "path": "datasets/line_follow_v3_base_plus_hard_right_dedup_20261003",
       "parent": "line_follow_v2_base_plus_hard_right_20260607",
       "status": "next_training_candidate",
       "image_files": 1086,

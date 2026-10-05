@@ -19,7 +19,8 @@ tf.get_logger().setLevel("ERROR")
 CLASS_NAMES = ["LEFT", "RIGHT", "STRAIGHT"]
 IMAGE_SIZE = (96, 96)
 BASE_DIR = Path(__file__).resolve().parent
-LATEST_RUN_PATH = BASE_DIR / "trained_line_models" / "latest_run.txt"
+MODELS_DIR = BASE_DIR.parent / "trained_models" / "line_follow"
+LATEST_RUN_PATH = MODELS_DIR / "latest_run.txt"
 
 
 def read_run_pointer(pointer_path: Path) -> Path:
@@ -36,7 +37,7 @@ def default_model_dir():
         latest = read_run_pointer(LATEST_RUN_PATH)
         if latest.exists():
             return latest
-    return BASE_DIR / "trained_line_models" / "mobilenetv2_96_a035_extpre"
+    return MODELS_DIR / "mobilenetv2_96_a035_extpre"
 
 
 def default_keras_model_name(model_dir: Path):
@@ -181,7 +182,7 @@ def main():
     parser.add_argument(
         "--data-dir",
         type=Path,
-        default=Path("dataset/line_follow_v3_base_plus_hard_right_dedup_20261003"),
+        default=Path("datasets/line_follow_v3_base_plus_hard_right_dedup_20261003"),
     )
     parser.add_argument("--model-dir", type=Path, default=None)
     parser.add_argument("--keras-model", default=None)
