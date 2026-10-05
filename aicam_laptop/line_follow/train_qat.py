@@ -22,8 +22,9 @@ tf.get_logger().setLevel("ERROR")
 CLASS_NAMES = ["LEFT", "RIGHT", "STRAIGHT"]
 IMAGE_SIZE = (96, 96)
 BASE_DIR = Path(__file__).resolve().parent
-LATEST_RUN_PATH = BASE_DIR / "trained_line_models" / "latest_run.txt"
-LATEST_FLOAT_RUN_PATH = BASE_DIR / "trained_line_models" / "latest_float_run.txt"
+MODELS_DIR = BASE_DIR.parent / "trained_models" / "line_follow"
+LATEST_RUN_PATH = MODELS_DIR / "latest_run.txt"
+LATEST_FLOAT_RUN_PATH = MODELS_DIR / "latest_float_run.txt"
 
 
 def read_run_pointer(pointer_path: Path) -> Path:
@@ -47,7 +48,7 @@ def latest_or_legacy_float_dir():
         latest = read_run_pointer(LATEST_FLOAT_RUN_PATH)
         if (latest / "best_float32.keras").exists():
             return latest
-    legacy = BASE_DIR / "trained_line_models" / "mobilenetv2_96_a035_extpre"
+    legacy = MODELS_DIR / "mobilenetv2_96_a035_extpre"
     if (legacy / "best_float32.keras").exists():
         return legacy
     raise FileNotFoundError("Cannot find best_float32.keras. Run train_float32.py first.")
@@ -56,7 +57,7 @@ def latest_or_legacy_float_dir():
 def default_qat_dir():
     """Create a timestamped QAT output directory."""
 
-    return BASE_DIR / "trained_line_models" / "mobilenetv2_96_a035_extpre_qat" / time.strftime("run_%Y%m%d_%H%M%S")
+    return MODELS_DIR / "mobilenetv2_96_a035_extpre_qat" / time.strftime("run_%Y%m%d_%H%M%S")
 
 
 def make_dataset(data_dir: Path, split: str, batch_size: int, shuffle: bool, seed: int):
@@ -201,7 +202,7 @@ def main():
     parser.add_argument(
         "--data-dir",
         type=Path,
-        default=Path("dataset/line_follow_v3_base_plus_hard_right_dedup_20261003"),
+        default=Path("datasets/line_follow_v3_base_plus_hard_right_dedup_20261003"),
     )
     parser.add_argument("--float-model-dir", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)

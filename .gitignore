@@ -47,8 +47,8 @@ sftp-config.json.bak
 /aicam_h618/var/
 
 # Laptop datasets and training outputs
-/aicam_laptop/dataset/
-/aicam_laptop/line_follow/trained_line_models/
+/aicam_laptop/datasets/
+/aicam_laptop/trained_models/
 /aicam_laptop/var/
 
 # CircuitPython-generated filesystem metadata

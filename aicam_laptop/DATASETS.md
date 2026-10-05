@@ -11,7 +11,7 @@ by explicitly versioned line-follow training sets.
 
 ## Source material
 
-`dataset/source_material/` preserves inputs that cannot be safely reconstructed:
+`datasets/source_material/` preserves inputs that cannot be safely reconstructed:
 
 - `recordings/record_02`, `record_03`, and `record_05` contain `images/` and
   `labels.csv`. Their generated `edgeimpulse_dataset/` copies are omitted.
@@ -82,4 +82,4 @@ The current clean build contains 1,086 unique images:
 This is a new evaluation dataset. It must not be used to claim direct
 comparability with metrics produced from v1 or v2.
 
-The complete `dataset/` directory is intended to be tracked with DVC, not Git.
+The complete `datasets/` directory is tracked with DVC, not Git.

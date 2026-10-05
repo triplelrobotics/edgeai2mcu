@@ -151,13 +151,13 @@ def main():
     parser.add_argument(
         "--source",
         type=Path,
-        default=Path("dataset/line_follow_v2_base_plus_hard_right_20260607"),
+        default=Path("datasets/line_follow_v2_base_plus_hard_right_20260607"),
     )
     parser.add_argument(
         "--output",
         type=Path,
         default=Path(
-            "dataset/line_follow_v3_base_plus_hard_right_dedup_20261003"
+            "datasets/line_follow_v3_base_plus_hard_right_dedup_20261003"
         ),
     )
     parser.add_argument("--force", action="store_true")
