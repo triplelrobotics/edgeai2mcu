@@ -1,0 +1,16 @@
+name: edgeai2mcu-laptop
+
+channels:
+  - defaults
+
+dependencies:
+  - python=3.10.22
+  - pip=26.2.1
+  - pip:
+      # TensorFlow 2.12 and earlier use the macOS-specific Apple Silicon wheel.
+      - tensorflow-macos==2.10.0
+      - tensorflow-model-optimization==0.7.5
+      - numpy==1.23.5
+      - opencv-python==4.8.1.78
+      - pynput==1.8.1
+      - requests==2.32.5
