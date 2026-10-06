@@ -22,10 +22,27 @@ training runs and deployed models is recorded in `MODEL_LINEAGE.json`.
 
 Run the commands below from `aicam_laptop/`.
 
+## Restore the Python environment
+
+The checked-in Conda environment targets Apple Silicon Macs and preserves the
+TensorFlow/Keras 2.10 model format used by the existing training runs:
+
+```bash
+conda env create -f environment.yml
+conda activate edgeai2mcu-laptop
+python -m pip check
+```
+
+The environment was verified with Python 3.10.22, TensorFlow 2.10.0, Keras
+2.10.0, and TensorFlow Model Optimization 0.7.5. It is the Apple Silicon
+equivalent of the historical Windows environment, which used Python 3.10,
+TensorFlow CPU 2.10.1, and Keras 2.10.0. DVC remains installed separately with
+`pipx`; it is not a training dependency.
+
 ## Restore artifacts
 
 `datasets/` and `trained_models/` are tracked by DVC. After a
-fresh clone and Git LFS checkout, restore them with:
+fresh clone and environment setup, restore them with:
 
 ```bash
 dvc pull
