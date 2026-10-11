@@ -2,3 +2,9 @@
 circuitpython_version = "10.2.1"
 firmware_build_date = "2026-05-13"
 board_id = "espressif_esp32s3_devkitc_1_n8r8"
+
+# Libraries must match the firmware bytecode format; old 8.x .mpy files do not.
+library_bundle = "adafruit-circuitpython-bundle-10.x-mpy-20261010.zip"
+library_bundle_url = "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20261010/adafruit-circuitpython-bundle-10.x-mpy-20261010.zip"
+library_bundle_sha256 = "791603fde6f660d2304f35aae3eab15b86d25eb9758080f422f6452e20bcbd3c"
+library_mpy_version = 6
