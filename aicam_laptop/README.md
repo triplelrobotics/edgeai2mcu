@@ -31,7 +31,7 @@ TensorFlow/Keras 2.10 model format used by the existing training runs:
 
 ```bash
 conda env create -f environment.yml
-conda activate edgeai2mcu-laptop
+conda activate aicam_laptop
 python -m pip check
 ```
 
@@ -46,7 +46,7 @@ automatically. It is not a complete package lock. To update an existing environm
 
 ```bash
 conda env update -f environment.yml --prune
-conda activate edgeai2mcu-laptop
+conda activate aicam_laptop
 ```
 
 ## Restore artifacts

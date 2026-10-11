@@ -1,4 +1,4 @@
-name: edgeai2mcu-laptop
+name: aicam_laptop
 
 channels:
   - defaults
