@@ -3,8 +3,10 @@
 # run_server()
 
 
-from robot_lane_tracking.robot_app import run
-run()
+# from robot_lane_tracking.robot_app import run
+# run()
+
+exec(open("test/test_wheel_control.py").read())
 
 # import time
 # print("minimal boot ok")

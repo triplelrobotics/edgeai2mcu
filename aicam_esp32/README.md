@@ -91,6 +91,56 @@ port before configuring the H618 `--motor-url` or laptop recorder URL.
 
 ## Development checks
 
+### Wheel wiring check
+
+`test/test_wheel_control.py` is an interactive hardware check, not an automated
+unit test. Lift all wheels off the ground and keep the motor power disconnect
+accessible. Stop the running application with Ctrl+C in the wireless serial
+console, then run from the REPL:
+
+```python
+exec(open("test/test_wheel_control.py").read())
+```
+
+Confirm the initial stopped state, type `run` before each short pulse, and
+answer `yes` only if the expected wheel(s) and direction were observed and all
+wheels stopped afterward. Any other response ends the test. It covers each
+wheel forward/backward, both wheels forward/backward, and both pivot directions.
+The test uses the new vehicle reference: BIN1/BIN2 (IO4/IO5) is left and
+AIN1/AIN2 (IO6/IO7) is right when facing forward. Backward is the opposite
+direction; pivot directions are viewed from above. The left-wheel check showed
+BIN positive throttle moves backward, so left forward now uses negative throttle.
+The right-wheel check showed AIN negative throttle moves backward, so right
+forward now uses positive throttle. All eight checks were confirmed on hardware
+on 2026-10-13. These test-only definitions do not change the existing application
+mapping in `motor_control.py`.
+
+Default throttle is 0.14 for 0.75 seconds. If it is too low to move an unloaded
+wheel, execute the script with automatic execution disabled and call `run`
+explicitly; limits are 0.30 throttle and 2 seconds:
+
+```python
+scope = {"__name__": "wheel_check"}
+exec(open("test/test_wheel_control.py").read(), scope)
+scope["run"](throttle=0.20, duration=0.75)
+```
+
+The script defines its own wheel mapping and direction signs and does not
+import the application controller, start the server or load saved speed
+settings. It resets all PWM outputs after each pulse and on normal exit,
+exceptions, or Ctrl+C, then releases
+the pins. A reset failure, firmware crash or lost console cannot guarantee an
+immediate stop; disconnect motor power if anything behaves unexpectedly. Do not
+run the older full-throttle tests for this check. The application's existing
+wheel reference has not yet been aligned with this test; check its mapping
+before driving on the ground. This check does not validate lane decisions or
+networking.
+
+The current `code.py` runs this interactive test instead of starting the robot
+server. To restore the application entry point after aligning its wheel mapping,
+replace the test call with `from robot_lane_tracking.robot_app import run` and
+`run()`.
+
 Edit locally, upload runtime changes, and inspect the device console. Check
 Wi-Fi, the browser page, and motor wiring/control before testing lane commands.
 Motor pins and tuning are in `robot_lane_tracking/motor_control.py`.
