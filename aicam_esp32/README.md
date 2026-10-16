@@ -24,6 +24,9 @@ expects bytecode format 6. Format 5 libraries from older bundles cause
 deployed copies with the matching checked-in files and remove obsolete files;
 the old `lib/asyncio/manifest.mpy` is not part of this bundle.
 
+The previous CircuitPython 8 library backup was removed after hardware
+verification of the current libraries. Historical copies remain in Git history.
+
 ## File roles
 
 | Path | Purpose |
@@ -32,7 +35,6 @@ the old `lib/asyncio/manifest.mpy` is not part of this bundle.
 | `code.py` | Runs the interactive application motor check (temporary entry point) |
 | `robot_lane_tracking/` | Wi-Fi server, HTTP routes, and motor control |
 | `lib/` | CircuitPython application libraries |
-| `lib_cp8/` | Inactive backup of libraries from the earlier CP 8 setup |
 | `settings.example.toml` | Wi-Fi and web workflow configuration template |
 | `settings.toml` (ignored) | Actual device settings and credentials |
 | `test/` | Earlier experiments and hardware checks |
@@ -56,22 +58,6 @@ templates, not startup dependencies. Deploy `test/` and `sd/` when needed.
 Preserve device settings and generated metadata with tools that delete
 destination-only files. The current `boot.py` disables USB storage, so restore
 Wi-Fi configuration and access before relying on wireless-only updates.
-
-### Previous library backup
-
-`lib_cp8/` preserves the previous library files, including the old
-`asyncio/manifest.mpy`. The archived `boot_out_2.txt` records CircuitPython 8.2.9
-dated 2023-12-06; the exact original library bundle date is unknown. The directory
-name identifies the historical setup, not a verified bundle version. This
-directory may be uploaded alongside `lib/` to keep a device-local
-backup, but it is not on CircuitPython's default library search path. Do not
-add it to `sys.path` or import from it.
-
-The backup is not compatible with the current CircuitPython 10 firmware. To
-roll back, stop the application, preserve the current `lib/`, restore a complete
-old library set into `/lib/` without mixing versions, and use matching firmware.
-Keep a copy on the Mac or in Git as well: a device-only backup can be lost when
-the filesystem is reformatted during firmware recovery.
 
 ## HTTP interface
 
