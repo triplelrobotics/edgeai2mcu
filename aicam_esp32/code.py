@@ -6,7 +6,7 @@
 # from robot_lane_tracking.robot_app import run
 # run()
 
-exec(open("test/test_wheel_control.py").read())
+exec(open("test/test_motor_controller.py").read())
 
 # import time
 # print("minimal boot ok")

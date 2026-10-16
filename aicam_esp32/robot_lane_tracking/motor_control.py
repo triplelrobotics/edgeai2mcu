@@ -1,16 +1,24 @@
+"""
+# Motor control for the lane tracking robot.
+# The camera facing direction is considered as the FORWARD direction of the robot.
+# The FORWARD direction is noted on the robot chassis with a small arrow.
+"""
+
 import board
 import pwmio
 import json
 from adafruit_motor import motor as Motor
 
-PIN_BIN1 = board.IO4   # right
+PIN_BIN1 = board.IO4   # physical left wheel
 PIN_BIN2 = board.IO5
-PIN_AIN1 = board.IO6   # left
+PIN_AIN1 = board.IO6   # physical right wheel
 PIN_AIN2 = board.IO7
 
 PWM_FREQ = 200
-LEFT_SIGN = 1    # -1
-RIGHT_SIGN = -1  # 1
+# Forward polarity verified by the individual wheel hardware checks
+# at aicam_esp32/test/test_wheel_control.py.
+LEFT_SIGN = -1
+RIGHT_SIGN = 1
 
 CONFIG_PATH = "robot_lane_tracking/config.json"
 
@@ -33,16 +41,16 @@ def clamp(x, lo=0.0, hi=1.0):
 
 class MotorController:
     def __init__(self):
-        # left
+        # Physical right wheel (AIN).
         ain1 = pwmio.PWMOut(PIN_AIN1, frequency=PWM_FREQ)
         ain2 = pwmio.PWMOut(PIN_AIN2, frequency=PWM_FREQ)
 
-        # right
+        # Physical left wheel (BIN).
         bin1 = pwmio.PWMOut(PIN_BIN1, frequency=PWM_FREQ)
         bin2 = pwmio.PWMOut(PIN_BIN2, frequency=PWM_FREQ)
 
-        self.motor_l = Motor.DCMotor(ain1, ain2)
-        self.motor_r = Motor.DCMotor(bin1, bin2)
+        self.motor_r = Motor.DCMotor(ain1, ain2)
+        self.motor_l = Motor.DCMotor(bin1, bin2)
 
         self.state = "STOP"
         self.base = DEFAULT_BASE
@@ -113,15 +121,14 @@ class MotorController:
         return clamp(max(v, self.min_effective))
 
     def _pair(self):
+        # Forward magnitudes in physical (left, right) wheel order.
         b = self.base
         d = self.turn_delta
 
         if self.state == "LEFT":
-            # return self._nz(b - d), self._nz(b)
-            return self._nz(b), self._nz(b - d)
-        if self.state == "RIGHT":
-            # return self._nz(b), self._nz(b - d)
             return self._nz(b - d), self._nz(b)
+        if self.state == "RIGHT":
+            return self._nz(b), self._nz(b - d)
         if self.state == "STRAIGHT":
             return self._nz(b), self._nz(b)
 
@@ -131,9 +138,10 @@ class MotorController:
         left, right = self._pair()
 
         if left is None:
-            self.motor_l.throttle = None
             self.motor_r.throttle = None
+            self.motor_l.throttle = None
             return
 
-        self.motor_l.throttle = LEFT_SIGN * left
+        # Preserve the existing AIN-before-BIN output update order.
         self.motor_r.throttle = RIGHT_SIGN * right
+        self.motor_l.throttle = LEFT_SIGN * left

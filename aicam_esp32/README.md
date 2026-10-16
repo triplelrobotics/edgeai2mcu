@@ -29,7 +29,7 @@ the old `lib/asyncio/manifest.mpy` is not part of this bundle.
 | Path | Purpose |
 | --- | --- |
 | `boot.py` | Disables USB storage for the current wireless workflow |
-| `code.py` | Starts `robot_lane_tracking.robot_app.run()` |
+| `code.py` | Runs the interactive application motor check (temporary entry point) |
 | `robot_lane_tracking/` | Wi-Fi server, HTTP routes, and motor control |
 | `lib/` | CircuitPython application libraries |
 | `lib_cp8/` | Inactive backup of libraries from the earlier CP 8 setup |
@@ -112,8 +112,8 @@ direction; pivot directions are viewed from above. The left-wheel check showed
 BIN positive throttle moves backward, so left forward now uses negative throttle.
 The right-wheel check showed AIN negative throttle moves backward, so right
 forward now uses positive throttle. All eight checks were confirmed on hardware
-on 2026-10-13. These test-only definitions do not change the existing application
-mapping in `motor_control.py`.
+on 2026-10-13. This script defines its own mapping independently of
+`motor_control.py`.
 
 Default throttle is 0.14 for 0.75 seconds. If it is too low to move an unloaded
 wheel, execute the script with automatic execution disabled and call `run`
@@ -131,15 +131,47 @@ settings. It resets all PWM outputs after each pulse and on normal exit,
 exceptions, or Ctrl+C, then releases
 the pins. A reset failure, firmware crash or lost console cannot guarantee an
 immediate stop; disconnect motor power if anything behaves unexpectedly. Do not
-run the older full-throttle tests for this check. The application's existing
-wheel reference has not yet been aligned with this test; check its mapping
-before driving on the ground. This check does not validate lane decisions or
-networking.
+run the older full-throttle tests for this check. To check the application
+controller itself, use the application motor controller check below. This
+wiring check does not validate lane decisions or networking.
 
-The current `code.py` runs this interactive test instead of starting the robot
-server. To restore the application entry point after aligning its wheel mapping,
-replace the test call with `from robot_lane_tracking.robot_app import run` and
-`run()`.
+### Application motor controller check
+
+The application now uses the verified physical wheel reference: left is BIN
+(IO4/IO5, forward sign -1), right is AIN (IO6/IO7, forward sign +1). Its object
+names and speed pairs have been aligned without changing the per-pin throttle
+outputs or their update order for existing commands.
+
+The current `code.py` runs `test/test_motor_controller.py`, which imports the
+actual application `MotorController`. Upload these three files to the matching
+device paths, then soft reload with the wireless serial console open:
+
+- `robot_lane_tracking/motor_control.py`
+- `test/test_motor_controller.py`
+- `code.py`
+
+Keep all wheels lifted and motor power disconnect accessible. Enter `ready`,
+then confirm the initial stopped state with `yes`. Enter `run` for each step:
+STOP, STRAIGHT, LEFT, RIGHT. Each step lasts 0.75 seconds and stops before asking
+for `yes` to confirm the observation. For LEFT, both wheels move forward with
+the physical left wheel slower; for RIGHT, the physical right wheel is slower.
+STRAIGHT requests the same throttle on both wheels; actual wheel speeds can
+differ mechanically. Answer anything other than `yes` if a result is incorrect
+or unclear. During a pulse, `q` or Ctrl+C ends the test and attempts to stop both
+motors; disconnect motor power if stopping fails.
+
+The test overrides loaded speed settings with base 0.14, turn delta 0.06, and
+minimum effective throttle 0.08, without saving them. It does not start the HTTP
+server or validate model predictions. Soft reload before repeating the test;
+the controller retains its allocated PWM pins until reload. The separate wheel
+wiring check above remains available and does not import the controller.
+
+On 2026-10-15, the user confirmed all four application motor checks passed on
+hardware through the wireless serial console after the mapping refactor.
+
+After hardware validation, restore the normal application entry point by
+replacing the test call with `from robot_lane_tracking.robot_app import run`
+and `run()`.
 
 Edit locally, upload runtime changes, and inspect the device console. Check
 Wi-Fi, the browser page, and motor wiring/control before testing lane commands.

@@ -1,4 +1,7 @@
-"""Interactive wheel hardware check; run with wheels lifted off the ground."""
+"""
+Interactive wheel hardware check; run with wheels lifted off the ground.
+Pure wheel control without robot_lane_tracking.motor_control lib included.
+"""
 
 import sys
 import time
