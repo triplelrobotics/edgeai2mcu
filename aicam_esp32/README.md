@@ -85,11 +85,67 @@ the filesystem is reformatted during firmware recovery.
 | `/estop` | Emergency stop |
 | `/arm` | Re-arm the motor controller |
 
-The application prints a URL with port 5000, but `sta_server.py` calls
-`server.start(bind_ip)` without specifying a port. Verify the actual listening
-port before configuring the H618 `--motor-url` or laptop recorder URL.
+The checked-in HTTPServer 4.8.2 library defaults to port 5000, so
+`server.start(bind_ip)` serves the application there. Configure the H618
+`--motor-url` or laptop recorder URL with the board's current IP and port 5000.
 
 ## Development checks
+
+### Test inventory and verification status
+
+These are manual CircuitPython device scripts, not host-side pytest tests.
+The names describe their purpose; `test_legacy_` marks historical experiments
+whose compatibility and hardware behavior have not been revalidated. Passing
+a Python syntax check does not establish that a script works on this board.
+Each script's opening docstring explains dependencies, entry behavior, and
+known limitations. No historical experiment was run during this cleanup.
+
+| Current file under `test/` | Previous name | Purpose and status |
+| --- | --- | --- |
+| `test_wheel_control.py` | Unchanged | Independent low-throttle wiring/polarity check; eight steps passed 2026-10-13. |
+| `test_motor_controller.py` | Unchanged | Actual application controller STOP/STRAIGHT/LEFT/RIGHT check; four steps passed 2026-10-15. Current `code.py` entry. |
+| `test_legacy_gpio_toggle.py` | `ESP32_PIN_test.py` | IO5 HIGH/LOW voltage probe, 10 seconds each; starts on execution/import. Full duty, no cleanup; disconnect motor power for probing. |
+| `test_legacy_motor_pwm_sequence.py` | `motor_test.py` | Automatic raw-PWM then DCMotor sequence; starts on execution/import, throttle 0.2, 2 seconds per state. Old direction labels; no exception cleanup. |
+| `test_legacy_motor_pwm_interactive.py` | `motor_test_with_keys.py` | Space/Enter steps through raw-PWM and DCMotor pulses, q exits; allocates pins on execution/import. Default throttle **1.0**, old labels, no exception cleanup. |
+| `test_legacy_http_motor_go_stop.py` | `robot_go_stop.py` | Call `run_server()` for STA/fallback-AP `/go` and `/stop`; separate legacy driver. `/go` requests backward under today's reference; no command expiry. |
+| `test_legacy_http_print_go_stop.py` | `robot_go_stop_print.py` | Call `run_server()` for AP-only HTTP state/logging; no motors or PWM. |
+| `test_legacy_small_demos.py` | `demos.py` | Mixed board helpers: LED, NeoPixel, UART, AP/WebSocket, raw motor and joystick. Running as main starts UART0 read; voltage method is a placeholder. |
+| `test_legacy_joystick_entry.py` | `code_backup.py` | Old startup launcher, not a current backup. Loads `test_legacy_small_demos`; running as main starts AP/joystick motor control. |
+| `test_legacy_joystick.min.js` | `joystick.min.js` | Browser Joystick widget used by the demo pages; support asset, not a test. |
+| `test_legacy_joystick.css` | `style.css` | Browser joystick layout styles; support asset, not a test. |
+
+For a device REPL, run a chosen script with
+`exec(open("test/FILE_NAME.py").read())`. Stop the current program first and
+soft reload between scripts that allocate pins. This executes top-level code
+immediately; the historical GPIO/PWM scripts do not have ready confirmations.
+Prefer the two verified checks below for today's motor hardware.
+
+The historical HTTP scripts only define functions when loaded. To deliberately
+start the print-only server, for example:
+
+```python
+scope = {"__name__": "http_check"}
+exec(open("test/test_legacy_http_print_go_stop.py").read(), scope)
+scope["run_server"]()
+```
+
+Both HTTP experiments need `adafruit_httpserver` and `asyncio`; the motor
+version also needs `adafruit_motor`. With the checked-in HTTPServer 4.8.2,
+`server.start()` defaults to port 5000, matching the H618 go/stop clients.
+Starting a demo AP changes network behavior and may interrupt wireless access.
+
+`test_legacy_small_demos.py` imports all dependencies eagerly, including `neopixel`,
+`adafruit_httpserver` with `Websocket`, and `adafruit_motor`, even for UART/LED
+methods. IO1 LED needs an external circuit; the RGB demo uses IO48; UART needs
+external wiring at 9600 baud (TX/RX or IO17/18). The AP pages request the renamed
+JS/CSS assets at the HTTP document root, while the repository stores them in
+`test/`: copy the two assets to the device HTTP root or adapt document root/URLs
+before trying the browser demos. Their motor logic uses the old wheel reference
+and has no disconnect timeout; review it before reuse.
+
+Renaming local files does not remove old copies on the device. When deploying
+this cleanup, update any personal launch snippets and remove obsolete device
+copies deliberately; no device files were changed by this local cleanup.
 
 ### Wheel wiring check
 

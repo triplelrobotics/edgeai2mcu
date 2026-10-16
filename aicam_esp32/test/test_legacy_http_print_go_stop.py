@@ -1,4 +1,10 @@
-# robot_go_stop_print.py  (CircuitPython)
+"""Legacy print-only HTTP go/stop test; no motor outputs.
+- Standalone: self-contained server; explicitly call run_server(), then use a browser or H618.
+- Start: load, then call run_server(); browse /go, /stop, /state.
+- Requires: CircuitPython Wi-Fi + adafruit_httpserver/asyncio; H618 is optional.
+- Network: demo AP (mywifiAP/password123); client must reach that AP.
+- Port: HTTPServer 4.8.2 defaults to 5000; not recently device-verified.
+"""
 import wifi
 import socketpool
 from asyncio import create_task, gather, run, sleep as async_sleep

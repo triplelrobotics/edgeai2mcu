@@ -1,6 +1,10 @@
-"""
-Interactive application motor check; run with all wheels lifted.
-Mainly test the MotorController from robot_lane_tracking.motor_control.
+"""Application MotorController check; four hardware steps passed 2026-10-15.
+- Standalone: no; requires robot_lane_tracking/motor_control.py; no HTTP server or H618 needed.
+- Purpose: STOP / STRAIGHT / LEFT / RIGHT; excludes HTTP and model inference.
+- Start: current code.py entry; ready/yes initializes, run/yes confirms each step.
+- Requires: lifted wheels, application module, board/pwmio/supervisor/adafruit_motor, serial input.
+- Settings: base=0.14, delta=0.06, min=0.08, 0.75 seconds per step; config is not saved.
+- Exit: attempts both motors stopped; soft reload to release pins before rerunning.
 """
 
 import sys

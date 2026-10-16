@@ -1,6 +1,10 @@
-"""
-motor_test.py  —  逐步测试两路电机的每个引脚
-按空格或回车启动当前步骤，转完自动停，再按进入下一步，输入 q 随时退出
+"""Legacy keyboard-stepped PWM / DCMotor test.
+- Standalone: yes on the board with serial input; no H618 needed.
+- Start: execution or import allocates pins; Space/Enter runs each step, q exits.
+- Requires: CircuitPython board/pwmio/supervisor, serial input, adafruit_motor.
+- Settings: throttle 1.0 (full duty), 2 seconds per step; adjust and lift wheels first.
+- Status: not recently verified; old wheel/direction labels differ from today's reference.
+- Limits: no exception cleanup; prefer test_wheel_control.py.
 """
 
 import time

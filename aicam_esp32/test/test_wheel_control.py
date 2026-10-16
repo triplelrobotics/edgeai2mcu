@@ -1,6 +1,10 @@
-"""
-Interactive wheel hardware check; run with wheels lifted off the ground.
-Pure wheel control without robot_lane_tracking.motor_control lib included.
+"""Independent wheel wiring/polarity check; eight hardware steps passed 2026-10-13.
+- Standalone: yes on the board with serial input; no application module or H618 needed.
+- Purpose: individual/both wheels forward/backward and both pivots; no MotorController.
+- Start: exec(open("test/test_wheel_control.py").read()); confirm ready/yes, then run/yes.
+- Requires: lifted wheels, CircuitPython board/pwmio/supervisor, serial input, adafruit_motor.
+- Settings: throttle 0.14, 0.75 seconds per step; judge passes by physical observation.
+- Exit: q/Ctrl+C attempts zero PWM; finally releases pins.
 """
 
 import sys
@@ -11,7 +15,7 @@ import pwmio
 import supervisor
 from adafruit_motor import motor as Motor
 
-# New vehicle reference for this test; application mapping is not changed yet.
+# Verified vehicle reference, also used by the aligned application controller.
 LEFT_PINS = (board.IO4, board.IO5)   # BIN1/BIN2
 RIGHT_PINS = (board.IO6, board.IO7)  # AIN1/AIN2
 PWM_FREQ = 200
@@ -67,7 +71,7 @@ def run(throttle=0.14, duration=0.75):
     print("Left: BIN IO4/IO5; right: AIN IO6/IO7; forward signs:",
           LEFT_FORWARD_SIGN, RIGHT_FORWARD_SIGN)
     print("Forward faces the vehicle front with BIN on the left and AIN on the right.")
-    print("Confirm polarity on hardware; this test does not change application mapping.")
+    print("Confirm polarity on hardware; this test uses its own motor objects.")
     print("Throttle:", throttle, "Duration:", duration, "seconds per step")
     print("During a pulse: q or Ctrl+C stops the test (best effort).")
     if input("Type ready to initialize outputs; anything else cancels: ").strip().lower() != "ready":

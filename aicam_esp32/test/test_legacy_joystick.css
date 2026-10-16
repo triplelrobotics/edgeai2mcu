@@ -1,3 +1,7 @@
+/* Browser joystick styles for test_legacy_small_demos.py.
+ * Standalone: no; browser asset used by the demo page, not a CircuitPython test.
+ * Serve at the demo HTTP root; support asset, not a test. Not recently verified.
+ */
 @media screen and (orientation:portrait) {
     /*  css[竖向定义样式]  */
     html, body {

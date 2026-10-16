@@ -1,6 +1,10 @@
-"""
-motor_test.py  —  逐步测试两路电机的每个引脚
-运行后观察串口输出，按提示观察轮子是否转动
+"""Legacy automatic PWM / DCMotor test.
+- Standalone: yes on the board; no other project module or H618 needed.
+- Purpose: compare raw pin control with adafruit_motor outputs.
+- Start: execution or import immediately runs; throttle 0.2, 2 seconds per step.
+- Requires: CircuitPython board/pwmio + adafruit_motor; lift all wheels.
+- Status: not recently verified; old wheel/direction labels differ from today's reference.
+- Limits: no exception cleanup; prefer test_wheel_control.py for wiring checks.
 """
 
 import time
@@ -8,7 +12,7 @@ import board
 import pwmio
 from adafruit_motor import motor as Motor
 
-# ── 引脚定义（与主程序保持一致）──────────────────────────
+# Legacy logical wheel names below differ from the current physical wheels.
 PIN_BIN1 = board.IO4   # 右轮
 PIN_BIN2 = board.IO5
 PIN_AIN1 = board.IO6   # 左轮

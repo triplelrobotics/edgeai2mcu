@@ -1,4 +1,12 @@
-# 在这里写上你的代码 :-)
+"""Legacy board experiments; not recently device-verified.
+- Standalone: UART/LED demos need no other project module; web demos also need JS/CSS assets.
+- Start: direct execution reads UART0; call demos().demo_xxx() for other demos.
+- Requires: CircuitPython hardware modules + neopixel/adafruit_motor/adafruit_httpserver/asyncio.
+- Imports: all dependencies load eagerly; HTTPServer must provide Websocket.
+- Wiring: external LED on IO1, RGB on IO48; external UART on TX/RX or IO17/18.
+- Web: serve test_legacy_joystick.min.js/.css at HTTP root; client joins demo AP.
+- Limits: voltage reader is a stub; old motor mapping, no exception/disconnect stop. Lift wheels.
+"""
 import time
 import neopixel
 import board
@@ -19,6 +27,7 @@ class demos(object):
         pass
     
     def demo_led(self):
+        """Endless PWM sweep on IO1; needs an external LED/circuit, no cleanup."""
 
         pwm = pwmio.PWMOut(board.IO1, frequency=50)  # output on LED pin with default of 500Hz
 
@@ -30,6 +39,7 @@ class demos(object):
                 pwm.duty_cycle = cycle  # Cycles the LED pin duty cycle through the range of values
         
     def demo_neopixel(self):
+        """Endless RGB fade on IO48; accesses board.NEOPIXEL, needs neopixel."""
         def _cycle_neopixel(pixel, wait):
             for r in range(255):
                 pixel[0] = (r, 0, 0)
@@ -69,6 +79,7 @@ class demos(object):
         print("- bye -\n")
 
     def demo_badMotorCtrl(self):
+        """Legacy full digital drive on IO4-7; no timed stop or cleanup."""
         # right wheel
         BN1 = digitalio.DigitalInOut(board.IO4)
         BN1.direction = digitalio.Direction.OUTPUT
@@ -118,6 +129,11 @@ class demos(object):
         #     BN2.value = 1
 
     def demo_serialComm(self, uart_id, uart_func):
+        """9600-baud UART read/write/loopback; UART0 TX/RX or UART1 IO17/18.
+
+        Needs external UART wiring (TX to RX for loopback), not USB/wireless
+        REPL input. Loops indefinitely and does not release the UART pins.
+        """
         if uart_id == 0:
             uart = busio.UART(board.TX, board.RX, baudrate=9600, timeout=1) # uart0
         elif uart_id == 1:
@@ -154,6 +170,7 @@ class demos(object):
                     print("Error:", e)
 
     def demo_wifiAP(self):
+        """AP joystick page with JSON logging/WebSocket echo; no motor PWM."""
         ap_ssid = "mywifiAP"   # set access point credentials
         ap_password = "password123"
         
@@ -182,8 +199,8 @@ class demos(object):
                             <head>
                                 <meta charset="UTF-8">
                                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                <script src="joystick.min.js"></script>
-                                <link rel="stylesheet" type="text/css" href="style.css">
+                                <script src="test_legacy_joystick.min.js"></script>
+                                <link rel="stylesheet" type="text/css" href="test_legacy_joystick.css">
                             </head>
                             <body>
                                 <div class="control-panel">
@@ -320,12 +337,18 @@ class demos(object):
 
     
     def demo_readVoltage(self):
+        """Unimplemented placeholder: no ADC setup, readings or output."""
         pass
 
 
 
     
     def demo_joystickMotorCtrl(self):
+        """Legacy AP/WebSocket drive with ramped PWM, old mapping/polarity.
+
+        Retains last command on disconnect, without timeout or finally stop.
+        PART_THROTTLE is 0.20, FULL_THROTTLE 0.50; review before lifted tests.
+        """
         # 1. Access joystick info
         ap_ssid = "mywifiAP"   # set access point credentials
         ap_password = "password123"
@@ -355,8 +378,8 @@ class demos(object):
                             <head>
                                 <meta charset="UTF-8">
                                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                <script src="joystick.min.js"></script>
-                                <link rel="stylesheet" type="text/css" href="style.css">
+                                <script src="test_legacy_joystick.min.js"></script>
+                                <link rel="stylesheet" type="text/css" href="test_legacy_joystick.css">
                             </head>
                             <body>
                                 <div class="control-panel">

@@ -1,4 +1,11 @@
-# robot_go_stop.py  (CircuitPython)
+"""Legacy HTTP motor server; compatible routes for the H618 detect client.
+- Standalone: self-contained server; explicitly call run_server(), then use a browser or H618.
+- Start: load, then call run_server(); a browser can also call /go and /stop.
+- Requires: CircuitPython Wi-Fi/pwmio + asyncio/adafruit_httpserver/adafruit_motor.
+- Network: settings.toml STA, fallback demo AP; HTTPServer 4.8.2 defaults to port 5000.
+- Status: not recently verified; /go drives backward by today's reference, throttle 0.11.
+- Limits: /set allows 1.0; no command timeout/exception cleanup. Lift wheels first.
+"""
 import os
 import time
 import board
