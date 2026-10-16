@@ -32,7 +32,8 @@ verification of the current libraries. Historical copies remain in Git history.
 | Path | Purpose |
 | --- | --- |
 | `boot.py` | Disables USB storage for the current wireless workflow |
-| `code.py` | Runs the interactive application motor check (temporary entry point) |
+| `code.py` | Selects a startup mode; currently `lane_tracking` |
+| `launcher.py` | Maps mode names to application and test entry points |
 | `robot_lane_tracking/` | Wi-Fi server, HTTP routes, and motor control |
 | `lib/` | CircuitPython application libraries |
 | `settings.example.toml` | Wi-Fi and web workflow configuration template |
@@ -49,7 +50,7 @@ record to identify the expected baseline.
    password, web API password, and hostname.
 3. Provision Wi-Fi/web workflow through the available initial connection before
    relying on wireless file updates.
-4. Upload `lib/`, `robot_lane_tracking/`, `code.py`, `boot.py`, and the actual
+4. Upload `lib/`, `robot_lane_tracking/`, `launcher.py`, `code.py`, `boot.py`, and the actual
    `settings.toml` to the CircuitPython root with the wireless development tool.
 5. Reload the application, inspect the console, and verify connectivity.
 
@@ -58,6 +59,36 @@ templates, not startup dependencies. Deploy `test/` and `sd/` when needed.
 Preserve device settings and generated metadata with tools that delete
 destination-only files. The current `boot.py` disables USB storage, so restore
 Wi-Fi configuration and access before relying on wireless-only updates.
+
+## Select a startup mode
+
+Keep `code.py` as a short selector, without commented-out programs:
+
+```python
+from launcher import run
+
+MODE = "lane_tracking"
+run(MODE)
+```
+
+Change only `MODE` to select a program:
+
+| Mode | Entry point | Requirements |
+| --- | --- | --- |
+| `lane_tracking` | `robot_lane_tracking.robot_app.run()` | Application modules, libraries, Wi-Fi settings and motor hardware. Current default. |
+| `motor_check` | `test/test_motor_controller.py` | Application controller, libraries, lifted wheels and serial input. |
+| `wheel_check` | `test/test_wheel_control.py` | Libraries, lifted wheels and serial input; independent of the application. |
+
+Upload `launcher.py` before the new `code.py`, plus the modules/test file required
+by the selected mode. Stop the current program, upload the selector, and soft
+reload to release allocated pins and start the selected mode. Each test retains
+its existing ready/run confirmations. The launcher itself has not yet been
+verified on the device; its routing has been checked with host-side mocks.
+
+`launcher.py` loads only the selected program. Unknown modes raise an error;
+there is no fallback program. Add future reviewed entry points there and update
+this table. Historical experiments retain their invocation instructions in
+`test/` and the inventory below; they are not registered startup modes.
 
 ## HTTP interface
 
@@ -89,7 +120,7 @@ known limitations. No historical experiment was run during this cleanup.
 | Current file under `test/` | Previous name | Purpose and status |
 | --- | --- | --- |
 | `test_wheel_control.py` | Unchanged | Independent low-throttle wiring/polarity check; eight steps passed 2026-10-13. |
-| `test_motor_controller.py` | Unchanged | Actual application controller STOP/STRAIGHT/LEFT/RIGHT check; four steps passed 2026-10-15. Current `code.py` entry. |
+| `test_motor_controller.py` | Unchanged | Actual application controller STOP/STRAIGHT/LEFT/RIGHT check; four steps passed 2026-10-15. Select `motor_check` in `code.py`. |
 | `test_legacy_gpio_toggle.py` | `ESP32_PIN_test.py` | IO5 HIGH/LOW voltage probe, 10 seconds each; starts on execution/import. Full duty, no cleanup; disconnect motor power for probing. |
 | `test_legacy_motor_pwm_sequence.py` | `motor_test.py` | Automatic raw-PWM then DCMotor sequence; starts on execution/import, throttle 0.2, 2 seconds per state. Old direction labels; no exception cleanup. |
 | `test_legacy_motor_pwm_interactive.py` | `motor_test_with_keys.py` | Space/Enter steps through raw-PWM and DCMotor pulses, q exits; allocates pins on execution/import. Default throttle **1.0**, old labels, no exception cleanup. |
@@ -184,12 +215,15 @@ The application now uses the verified physical wheel reference: left is BIN
 names and speed pairs have been aligned without changing the per-pin throttle
 outputs or their update order for existing commands.
 
-The current `code.py` runs `test/test_motor_controller.py`, which imports the
-actual application `MotorController`. Upload these three files to the matching
+To run the application motor check, set `MODE = "motor_check"` in `code.py`.
+`launcher.py` runs `test/test_motor_controller.py` using the actual application
+`MotorController`.
+Upload these four files to the matching
 device paths, then soft reload with the wireless serial console open:
 
 - `robot_lane_tracking/motor_control.py`
 - `test/test_motor_controller.py`
+- `launcher.py`
 - `code.py`
 
 Keep all wheels lifted and motor power disconnect accessible. Enter `ready`,
@@ -211,9 +245,8 @@ wiring check above remains available and does not import the controller.
 On 2026-10-15, the user confirmed all four application motor checks passed on
 hardware through the wireless serial console after the mapping refactor.
 
-After hardware validation, restore the normal application entry point by
-replacing the test call with `from robot_lane_tracking.robot_app import run`
-and `run()`.
+After hardware validation, select the normal application by setting
+`MODE = "lane_tracking"` in `code.py`, then upload the selector and soft reload.
 
 Edit locally, upload runtime changes, and inspect the device console. Check
 Wi-Fi, the browser page, and motor wiring/control before testing lane commands.

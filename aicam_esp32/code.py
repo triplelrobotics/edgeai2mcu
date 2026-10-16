@@ -1,19 +1,6 @@
-# from robot_go_stop_print import run_server
-# from robot_go_stop import run_server
-# run_server()
+"""Select a startup mode; see README.md for entry points and requirements."""
 
+from launcher import run
 
-# from robot_lane_tracking.robot_app import run
-# run()
-
-exec(open("test/test_motor_controller.py").read())
-
-# import time
-# print("minimal boot ok")
-# while True:
-#     time.sleep(1)
-
-
-# # code.py
-# import motor_test_with_keys
-# import ESP32_PIN_test
+MODE = "lane_tracking"
+run(MODE)
