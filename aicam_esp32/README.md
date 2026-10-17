@@ -35,6 +35,7 @@ verification of the current libraries. Historical copies remain in Git history.
 | `code.py` | Selects a startup mode; currently `lane_tracking` |
 | `launcher.py` | Maps mode names to application and test entry points |
 | `robot_lane_tracking/` | Wi-Fi server, HTTP routes, and motor control |
+| `robot_lane_tracking/config.json` | Saved motor tuning loaded at startup; tracked baseline for recovery |
 | `lib/` | CircuitPython application libraries |
 | `settings.example.toml` | Wi-Fi and web workflow configuration template |
 | `settings.toml` (ignored) | Actual device settings and credentials |
@@ -101,10 +102,58 @@ this table. Historical experiments retain their invocation instructions in
 | `/lane?m=LEFT` | Lane decision from H618 |
 | `/estop` | Emergency stop |
 | `/arm` | Re-arm the motor controller |
+| `/params` | Read current motor parameters |
+| `/config?...` | Apply motor parameters in memory; add `save=true` to persist them |
 
 The checked-in HTTPServer 4.8.2 library defaults to port 5000, so
 `server.start(bind_ip)` serves the application there. Configure the H618
 `--motor-url` or laptop recorder URL with the board's current IP and port 5000.
+
+## Tune and save motor parameters
+
+`robot_lane_tracking/config.json` is loaded on startup. Its checked-in baseline
+is base 0.14, turn delta 0.06, and minimum effective throttle 0.08, matching the
+existing defaults. These are starting values, not a claim of optimal tuning.
+A missing file uses built-in defaults and prints an informational message;
+unreadable or invalid files produce a distinct diagnostic. Startup does not
+automatically create or overwrite the saved file.
+
+Replace `ESP32_IP` with the actual address. Stop recording and other command
+sources before tuning, and begin with lifted wheels. Read the active values:
+
+```bash
+curl --max-time 2 http://ESP32_IP:5000/params
+```
+
+Try parameters in memory (omitting `save` does not write flash):
+
+```bash
+curl --max-time 2 "http://ESP32_IP:5000/config?base=0.14&turn_delta=0.06&min_effective=0.08"
+```
+
+Each supplied parameter must be a finite number between 0 and 1. Invalid
+updates are rejected before any active value changes. `base` is the straight
+wheel throttle magnitude; turns reduce the inner wheel by `turn_delta`, with
+positive values floored by `min_effective`. Check actual turning behavior when
+choosing these values.
+
+Once satisfied, save the currently active values explicitly:
+
+```bash
+curl --fail --max-time 2 "http://ESP32_IP:5000/config?save=true"
+```
+
+Omitting `save`, or using `save=false`, changes memory only. Success includes
+`saved=true` when persisted, otherwise `saved=false`. A write failure returns HTTP 500; current values
+remain in memory, but persistence has not been confirmed. After a successful
+save, soft reload, look for `Loaded config:`, and check `/params` again.
+
+Download `robot_lane_tracking/config.json` from the device with the wireless
+file tool, replacing the local copy, then review and commit that file when the
+tuning is worth keeping. Git history preserves earlier tuning without leaving
+old values in code comments. Back up device tuning before uploading the local
+folder: uploading its config.json can overwrite newer settings on the device.
+The `motor_check` test temporarily overrides these values without saving.
 
 ## Development checks
 

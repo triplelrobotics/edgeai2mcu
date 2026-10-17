@@ -83,6 +83,10 @@ class MotorController:
         return self.state
 
     def set_params(self, base=None, turn_delta=None, min_effective=None):
+        # Validate the full update before changing any active parameter.
+        for value in (base, turn_delta, min_effective):
+            if value is not None and not 0.0 <= value <= 1.0:
+                raise ValueError("Motor parameters must be finite numbers between 0 and 1")
         if base is not None:
             self.base = clamp(base)
         if turn_delta is not None:
@@ -107,8 +111,14 @@ class MotorController:
                 min_effective=cfg.get("min_effective"),
             )
             print("Loaded config:", self.get_params())
+        except OSError as e:
+            if e.args and e.args[0] == 2:
+                print("No saved motor config at %s; using built-in defaults:" % CONFIG_PATH,
+                      self.get_params())
+            else:
+                print("Unable to read motor config; using built-in defaults:", e)
         except Exception as e:
-            print("Using default motor config:", e)
+            print("Invalid motor config; using built-in defaults:", e)
 
     def save_config(self):
         with open(CONFIG_PATH, "w") as f:

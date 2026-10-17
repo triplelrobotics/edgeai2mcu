@@ -116,6 +116,9 @@ def register_routes(server, motor):
         qs = request.query_params
 
         try:
+            save = qs.get("save", "false")
+            if save not in ("false", "true"):
+                raise ValueError("save must be false or true")
             base = float(qs["base"]) if "base" in qs else None
             min_effective = float(qs["min_effective"]) if "min_effective" in qs else None
             turn_delta = float(qs["turn_delta"]) if "turn_delta" in qs else None
@@ -125,20 +128,32 @@ def register_routes(server, motor):
                 min_effective=min_effective,
                 turn_delta=turn_delta,
             )
-
-            p = motor.get_params()
-            body = (
-                "OK "
-                "base=" + str(p["base"]) +
-                " min_effective=" + str(p["min_effective"]) +
-                " turn_delta=" + str(p["turn_delta"]) + "\n"
-            )
-            return Response(request, body=body, content_type="text/plain")
-
-        except Exception:
+        except (ValueError, TypeError):
             return Response(
                 request,
-                body="ERR usage: /config?base=0.13&min_effective=0.05&turn_delta=0.07\n",
+                body="ERR use parameters between 0 and 1: /config?base=0.14&min_effective=0.08&turn_delta=0.06&save=true\n",
                 content_type="text/plain",
                 status=400,
             )
+
+        if save == "true":
+            try:
+                motor.save_config()
+            except OSError as e:
+                print("Unable to save motor config:", e)
+                return Response(
+                    request,
+                    body="ERR config not saved; current parameters remain in memory. Check filesystem write access/space.\n",
+                    content_type="text/plain",
+                    status=500,
+                )
+
+        p = motor.get_params()
+        body = (
+            "OK "
+            "base=" + str(p["base"]) +
+            " min_effective=" + str(p["min_effective"]) +
+            " turn_delta=" + str(p["turn_delta"]) +
+            " saved=" + save + "\n"
+        )
+        return Response(request, body=body, content_type="text/plain")

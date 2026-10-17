@@ -1,0 +1,5 @@
+{
+  "base": 0.14,
+  "turn_delta": 0.06,
+  "min_effective": 0.08
+}
