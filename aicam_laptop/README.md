@@ -68,15 +68,45 @@ DVC remote and local cache.
 Use `record_base_samples.py` for continuous synchronized frames and
 control labels:
 
-Set `ESP32_BASE_URL`, `STREAM_URL`, and `DATASET_DIR` in the script before
-collection. The default output is `datasets/` relative to the working directory.
-On macOS, keyboard capture may require Accessibility permission. The recorder
-currently sends `/cmd?act=...`, while the ESP32 handler reads `/cmd?m=...`;
-align that interface before collecting control labels.
+Pass the H618 stream URL and the ESP32 base URL, including its verified port.
+On macOS, keyboard capture may require Accessibility permission.
 
 ```bash
-python3 line_follow/record_base_samples.py
+python3 line_follow/record_base_samples.py \
+  --stream-url http://H618_IP:5000/video_feed \
+  --motor-url http://ESP32_IP:PORT
 ```
+
+Each run creates `var/capture/session_YYYYMMDD_HHMMSS_ffffff/` with
+`images/`, `labels.csv`, and `session.json` (URLs, timestamps, capture settings).
+
+- **Up:** start/resume fixed-throttle straight driving; releasing has no effect.
+- **Left/Right:** hold to turn; release to drive straight along the new heading.
+  Repeated taps change heading, not turn strength.
+- **Down/Space:** stop; releasing keeps STOP. A new direction press or steering
+  release can resume motion. Held-key repeats are ignored, as in the old web UI.
+- **Quit:** press `q`. Startup and shutdown send STOP; control failures end capture
+  and leave the session pending. If STOP fails, check the robot directly.
+- **Review:** choose `k` to keep, `d` to delete the session, or Enter/`p` to leave
+  pending. Ctrl+C, errors, or an unavailable prompt also leave it pending.
+- **Storage:** kept sessions move to `datasets/source_material/records/`.
+  Only newly received frames are saved; stream outages do not duplicate frames.
+- **Options:** `--capture-dir`, `--output-dir`, `--save-fps`, `--no-preview`.
+  Defaults are relative to `aicam_laptop/`; explicit relative paths use the
+  working directory.
+
+Review a pending session later, without connecting to either device:
+
+```bash
+python3 line_follow/record_base_samples.py \
+  --review-session var/capture/session_YYYYMMDD_HHMMSS_ffffff
+```
+
+Add `--decision keep|discard|pending` for an explicit decision. Use the same
+`--capture-dir` when reviewing captures stored in a custom location.
+
+After review, run `dvc add datasets` and `dvc push`, then commit `datasets.dvc`.
+Preparing train/val/test splits from raw sessions remains a separate step.
 
 Use `record_hard_samples.py` to save selected field-test frames directly into
 `LEFT`, `RIGHT`, and `STRAIGHT` class directories:
