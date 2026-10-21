@@ -90,7 +90,9 @@ Each run creates `var/capture/session_YYYYMMDD_HHMMSS_ffffff/` with
 - **Review:** choose `k` to keep, `d` to delete the session, or Enter/`p` to leave
   pending. Ctrl+C, errors, or an unavailable prompt also leave it pending.
 - **Storage:** kept sessions move to `datasets/source_material/records/`.
-  Only newly received frames are saved; stream outages do not duplicate frames.
+  Consecutive STOP samples are skipped after the first saved STOP frame.
+  Normal frame availability and sampling rate still apply; no STOP frame is
+  forced on exit. Stream outages do not duplicate old frames.
 - **Options:** `--capture-dir`, `--output-dir`, `--save-fps`, `--no-preview`.
   Defaults are relative to `aicam_laptop/`; explicit relative paths use the
   working directory.

@@ -301,9 +301,56 @@ class SessionTests(unittest.TestCase):
         self.assertFalse(controller.send_action("LEFT"))
         self.assertIsNone(controller.last_sent)
 
+    def test_consecutive_stop_samples_are_skipped(self):
+        app, keys = self.keyboard_app()
+        app.reader = Mock()
+        app.recorder.save = Mock(return_value="mock.jpg")
+        actions = iter(["STOP", "STOP", "STRAIGHT", "LEFT", "STOP", "STOP", "RIGHT", "STOP", "STOP"])
+        frames = []
+
+        def read():
+            action = next(actions, None)
+            if action is None:
+                app.running = False
+                return None
+            app.set_action(action)
+            frame = np.full((96, 96, 3), len(frames), dtype=np.uint8)
+            frames.append(frame)
+            return frame
+
+        app.reader.read_latest.side_effect = read
+        with patch.object(recorder.time, "time", side_effect=range(100, 110)):
+            app.loop()
+        saved = app.recorder.save.call_args_list
+        self.assertEqual([call.args[1] for call in saved],
+                         ["STOP", "STRAIGHT", "LEFT", "STOP", "RIGHT", "STOP"])
+        for call, index in zip(saved, (0, 2, 3, 4, 6, 7)):
+            self.assertIs(call.args[0], frames[index])
+
+    def test_stop_does_not_force_a_sample_before_the_next_capture_interval(self):
+        app, keys = self.keyboard_app()
+        app.reader = Mock()
+        app.recorder.save = Mock(return_value="mock.jpg")
+        actions = iter(["STRAIGHT", "STOP", None])
+
+        def read():
+            action = next(actions)
+            if action is None:
+                app.running = False
+                return None
+            app.set_action(action)
+            return np.zeros((96, 96, 3), dtype=np.uint8)
+
+        app.reader.read_latest.side_effect = read
+        with patch.object(recorder.time, "time", side_effect=[100.0, 100.01, 100.02]):
+            app.loop()
+        app.recorder.save.assert_called_once()
+        self.assertEqual(app.recorder.save.call_args.args[1], "STRAIGHT")
+
     def test_stream_outage_does_not_duplicate_old_frame(self):
         session = recorder.create_session(self.args)
         app = recorder.App(self.args, session)
+        app.current_action = "STRAIGHT"
         app.reader = Mock()
         app.recorder.close()
         app.recorder = Mock()

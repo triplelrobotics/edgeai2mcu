@@ -271,6 +271,7 @@ class App:
         self.key_ts = time.time()
 
         self.last_save_ts = 0.0
+        self.last_saved_action = None
         self.latest_frame = None
 
         # Match the web control's keydown repeat filter:
@@ -363,9 +364,12 @@ class App:
                     break
                 # Copy labels before disk I/O; image writes must not block STOP.
                 action, action_ts = self.current_action, self.key_ts
-                name = self.recorder.save(frame, action, now, action_ts)
-                print(f"[Saved] {name}, {action}")
-                self.last_save_ts = now
+                # Skip consecutive STOP samples without interrupting preview/control.
+                if action != "STOP" or self.last_saved_action != "STOP":
+                    name = self.recorder.save(frame, action, now, action_ts)
+                    print(f"[Saved] {name}, {action}")
+                    self.last_save_ts = now
+                    self.last_saved_action = action
 
             if not self.args.no_preview:
                 preview = self.draw_preview(self.latest_frame)
