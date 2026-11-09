@@ -9,6 +9,8 @@ os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 import numpy as np
 import tensorflow as tf
 
+from prepare_dataset import read_classes, validate_split_classes, write_json
+
 tf.get_logger().setLevel("ERROR")
 
 CLASS_NAMES = ["LEFT", "RIGHT", "STRAIGHT"]
@@ -23,17 +25,26 @@ LATEST_FLOAT_RUN_PATH = MODELS_DIR / "latest_float_run.txt"
 def make_dataset(data_dir: Path, split: str, batch_size: int, shuffle: bool, seed: int):
     """Load one class-folder split as RGB float32 batches with fixed class order."""
 
-    return tf.keras.utils.image_dataset_from_directory(
+    validate_split_classes(data_dir, split, CLASS_NAMES)
+    all_classes = read_classes(data_dir)
+    dataset = tf.keras.utils.image_dataset_from_directory(
         data_dir / split,
         labels="inferred",
         label_mode="categorical",
-        class_names=CLASS_NAMES,
+        class_names=all_classes,
         color_mode="rgb",
-        batch_size=batch_size,
+        batch_size=batch_size if CLASS_NAMES == all_classes else None,
         image_size=IMAGE_SIZE,
         shuffle=shuffle,
         seed=seed,
     )
+    if CLASS_NAMES != all_classes:
+        # Keras 2.10 requires every directory class, so filter and remap afterward.
+        indices = [all_classes.index(label) for label in CLASS_NAMES]
+        dataset = dataset.filter(lambda image, label: tf.reduce_sum(tf.gather(label, indices)) > 0)
+        dataset = dataset.map(lambda image, label: (image, tf.gather(label, indices)))
+        dataset = dataset.batch(batch_size)
+    return dataset
 
 
 def build_model(dropout: float, dense_units: int, alpha: float, train_backbone: bool):
@@ -148,6 +159,7 @@ def write_run_pointer(pointer_path: Path, run_dir: Path) -> None:
 
 
 def main():
+    global CLASS_NAMES
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data-dir",
@@ -163,13 +175,18 @@ def main():
     parser.add_argument("--alpha", type=float, default=0.35)
     parser.add_argument("--dense-units", type=int, default=16)
     parser.add_argument("--dropout", type=float, default=0.1)
+    parser.add_argument("--classes", nargs="+", metavar="CLASS",
+                        help="Training classes in output order, e.g. RIGHT STRAIGHT; default: all dataset classes")
     args = parser.parse_args()
+    CLASS_NAMES = read_classes(args.data_dir, args.classes)
+    print("Selected classes:", CLASS_NAMES)
 
     if args.output_dir is None:
         args.output_dir = default_run_dir()
 
     tf.keras.utils.set_random_seed(args.seed)
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    write_json(args.output_dir / "labels.json", CLASS_NAMES)
     LATEST_RUN_PATH.parent.mkdir(parents=True, exist_ok=True)
     write_run_pointer(LATEST_RUN_PATH, args.output_dir)
     write_run_pointer(LATEST_FLOAT_RUN_PATH, args.output_dir)

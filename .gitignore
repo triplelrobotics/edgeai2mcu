@@ -51,6 +51,9 @@ sftp-config.json.bak
 /aicam_laptop/trained_models/
 /aicam_laptop/var/
 
+# DVC-managed compiler image
+/aicam_laptop/tools/edge_tpu_compiler/edgetpu-compiler-16.0.384591198-linux-amd64.tar
+
 # CircuitPython-generated filesystem metadata
 /aicam_esp32/.Trashes/
 /aicam_esp32/.fseventsd/

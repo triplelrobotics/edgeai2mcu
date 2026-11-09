@@ -120,6 +120,104 @@ python3 line_follow/record_hard_samples.py \
 
 Neither recorder is required when retraining from an existing dataset.
 
+## Review raw recordings and prepare a dataset
+
+`prepare_dataset.py` contains the review page and three commands: `review`,
+`check`, and `build`. No handwritten JSON configuration is needed.
+
+Review one session at a time:
+
+```bash
+python line_follow/prepare_dataset.py review \
+  --source var/capture/session_20261022_085655_070233
+```
+
+Open `http://127.0.0.1:8765` (or set `--port`). Ctrl+C stops the server; restarting
+with the same source resumes saved decisions. Use another source to review more.
+
+- Click selects one frame; Ctrl/Cmd-click toggles; Shift-click selects a range.
+  Select page / Select all filtered support batch decisions across pages.
+- Keep (`K`), Exclude (`X`), Unreviewed (`U`), label overrides and reasons save
+  automatically. Arrow keys inspect adjacent frames. Undo reverses up to 30 edits
+  within the current server session.
+- The header shows kept STRAIGHT/RIGHT/LEFT counts for the entire current session,
+  using corrected labels and excluding STOP. Counts update after edits and undo.
+- Filter by label, decision or integrity issues. Reviewed shows Keep + Exclude
+  together; Keep shows only retained samples. Missing/corrupt/invalid rows need
+  explicit exclusion. Source hashes detect changes after review.
+- Decisions live in `<session>/review.csv`, beside `labels.csv` and `session.json`.
+  Raw images and labels are unchanged. Review quality and label correctness now;
+  choose training classes later.
+
+For a read-only integrity report, without creating decisions or starting a server:
+
+```bash
+python line_follow/prepare_dataset.py check --source PATH_TO_SESSION
+```
+
+Retain a pending capture in DVC-managed storage using the existing session command;
+its `review.csv` moves with it:
+
+```bash
+python line_follow/record_base_samples.py \
+  --review-session var/capture/session_20261022_085655_070233 --decision keep
+```
+
+After reviewing the desired sessions, pass their directories directly to `build`:
+
+```bash
+python line_follow/prepare_dataset.py build \
+  --source datasets/source_material/records/session_A \
+           datasets/source_material/records/session_B \
+  --output datasets/line_follow_v4_reviewed
+```
+
+- Pool all kept samples, exclude STOP, and deduplicate identical image content
+  before splitting. Conflicting labels for identical content stop the build.
+  Only Keep samples enter the dataset. Unreviewed and Exclude samples are skipped
+  and counted without changing review decisions. Images absent from the CSV are
+  omitted and reported.
+- Split each class approximately 70% train / 15% val / 15% test, with fixed
+  `--seed 42`. A class with at least three unique samples contributes to all splits;
+  one or two samples stay in train. Empty classes are reported and checked when
+  training selects its classes. One sufficiently large session is enough.
+- Same sources, decisions, seed and script produce identical output contents,
+  regardless of source argument order. Adding sources can change the split;
+  keep an existing generated version for model comparisons.
+- Exact duplicates cannot cross splits. Similar neighboring frames can, so this
+  pooled split can overestimate performance on independent runs. No automatic
+  near-duplicate removal, class balancing or augmentation is performed.
+
+Raw sessions stay under `datasets/source_material/records/`; generated
+`train/val/test/<class>/` folders stay under the separate `--output` directory.
+Existing output directories are never overwritten. The only generated JSON is
+`dataset.json`: class order, source/review hashes, session metadata, seed, ratios,
+counts and builder hash. `manifest.csv` traces each output image to its source,
+original/final label and review reason.
+
+DVC versions raw sessions (including reviews) and generated datasets. Run
+`dvc add datasets` and `dvc push`, then commit `datasets.dvc` after preparation.
+`var/capture/` alone is not backed up by DVC. No extra config/review directories
+are required.
+
+Dataset builds retain LEFT/RIGHT/STRAIGHT. Use the same dataset for two- or
+three-class training; pass the same ordered `--classes` to training, QAT and export:
+
+```bash
+python line_follow/train_float32.py \
+  --data-dir datasets/line_follow_v4_reviewed --classes RIGHT STRAIGHT
+python line_follow/train_qat.py \
+  --data-dir datasets/line_follow_v4_reviewed --classes RIGHT STRAIGHT
+python line_follow/export_tflite.py \
+  --data-dir datasets/line_follow_v4_reviewed --classes RIGHT STRAIGHT
+```
+
+Omit `--classes` to use all dataset classes. Unselected images do not participate
+in training, validation, testing or quantization calibration. Old datasets without
+class metadata retain LEFT/RIGHT/STRAIGHT order. Models record their selected
+labels, and QAT/export reject mismatches. Two-class models need corresponding
+inference-side label mapping before deployment; device code is unchanged here.
+
 ## Rebuild historical datasets
 
 The scripts below reproduce specific dataset versions. They are provenance and
@@ -171,10 +269,29 @@ tools/edge_tpu_compiler/compile.sh \
   trained_models/line_follow/mobilenetv2_96_a035_extpre_qat/run_YYYYMMDD_HHMMSS/model_int8_uint8.tflite
 ```
 
-The wrapper builds and runs the Linux compiler container automatically. The
-compiled `_edgetpu.tflite` model and compiler log are written beside the input
-model. On Apple Silicon it uses `linux/amd64` by default. The image and platform
-can be overridden with `AICAM_EDGETPU_IMAGE` and `AICAM_DOCKER_PLATFORM`.
+The wrapper reuses `edgetpu_compiler:16.0.384591198`, loading the DVC-managed
+archive automatically if the image is missing. It does not build the Dockerfile
+or download compiler packages. Restore the archive from the repository root:
+
+```bash
+dvc pull aicam_laptop/tools/edge_tpu_compiler/edgetpu-compiler-16.0.384591198-linux-amd64.tar.dvc
+```
+
+The archive was exported from the Lenovo environment and contains compiler
+`16.0.384591198`, matching the May/June 2026 compilation logs. To check it after
+the first compilation:
+
+```bash
+docker run --rm --platform linux/amd64 \
+  edgetpu_compiler:16.0.384591198 edgetpu_compiler --version
+```
+
+The compiled `_edgetpu.tflite` model, compiler report (`_edgetpu.log`), and console
+log (`_edgetpu.compile.log`) are written beside the input model.
+Apple Silicon uses `linux/amd64` emulation. Override the image and platform
+with `AICAM_EDGETPU_IMAGE` and `AICAM_DOCKER_PLATFORM`; custom images must already
+be loaded. The old Dockerfile is retained for reference; its Coral APT endpoint
+currently returns HTTP 404.
 
 Docker must be installed and running separately from Conda. The wrapper accepts
 any `.tflite` path; Edge TPU mapping depends on the model's operators. After

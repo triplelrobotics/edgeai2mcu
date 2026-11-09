@@ -9,6 +9,8 @@ os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 import numpy as np
 import tensorflow as tf
 
+from prepare_dataset import check_model_classes, read_classes, validate_split_classes, write_json
+
 try:
     import tensorflow_model_optimization as tfmot
 except ImportError as e:
@@ -63,17 +65,26 @@ def default_qat_dir():
 def make_dataset(data_dir: Path, split: str, batch_size: int, shuffle: bool, seed: int):
     """Load one class-folder split as RGB float32 batches with fixed class order."""
 
-    return tf.keras.utils.image_dataset_from_directory(
+    validate_split_classes(data_dir, split, CLASS_NAMES)
+    all_classes = read_classes(data_dir)
+    dataset = tf.keras.utils.image_dataset_from_directory(
         data_dir / split,
         labels="inferred",
         label_mode="categorical",
-        class_names=CLASS_NAMES,
+        class_names=all_classes,
         color_mode="rgb",
-        batch_size=batch_size,
+        batch_size=batch_size if CLASS_NAMES == all_classes else None,
         image_size=IMAGE_SIZE,
         shuffle=shuffle,
         seed=seed,
     )
+    if CLASS_NAMES != all_classes:
+        # Keras 2.10 requires every directory class, so filter and remap afterward.
+        indices = [all_classes.index(label) for label in CLASS_NAMES]
+        dataset = dataset.filter(lambda image, label: tf.reduce_sum(tf.gather(label, indices)) > 0)
+        dataset = dataset.map(lambda image, label: (image, tf.gather(label, indices)))
+        dataset = dataset.batch(batch_size)
+    return dataset
 
 
 def preprocess_batch(images, labels):
@@ -125,6 +136,8 @@ def make_qat_model(float_model_path: Path):
     """Load a float32 Keras model, flatten its MobileNetV2 backbone, then wrap it for QAT."""
 
     float_model = tf.keras.models.load_model(float_model_path)
+    if float_model.output_shape[-1] != len(CLASS_NAMES):
+        raise ValueError("Float model output does not match dataset classes")
     flat_model = make_flat_model_from_nested(float_model)
     return tfmot.quantization.keras.quantize_model(flat_model)
 
@@ -198,6 +211,7 @@ def configure_trainable_layers(model, mode: str, last_n: int):
 
 
 def main():
+    global CLASS_NAMES
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data-dir",
@@ -214,15 +228,21 @@ def main():
     parser.add_argument("--trainable", choices=["head", "last-n", "all"], default="head")
     parser.add_argument("--last-n", type=int, default=20)
     parser.add_argument("--use-class-weight", action="store_true")
+    parser.add_argument("--classes", nargs="+", metavar="CLASS",
+                        help="Training classes in output order, e.g. RIGHT STRAIGHT; default: all dataset classes")
     args = parser.parse_args()
+    CLASS_NAMES = read_classes(args.data_dir, args.classes)
+    print("Selected classes:", CLASS_NAMES)
 
     if args.float_model_dir is None:
         args.float_model_dir = latest_or_legacy_float_dir()
+    check_model_classes(args.float_model_dir, CLASS_NAMES)
     if args.output_dir is None:
         args.output_dir = default_qat_dir()
 
     tf.keras.utils.set_random_seed(args.seed)
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    write_json(args.output_dir / "labels.json", CLASS_NAMES)
     LATEST_RUN_PATH.parent.mkdir(parents=True, exist_ok=True)
     write_run_pointer(LATEST_RUN_PATH, args.output_dir)
 

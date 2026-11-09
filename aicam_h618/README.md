@@ -58,7 +58,10 @@ Apple Silicon laptop environment.
 
 Both versions use `app/line_follow/labels.txt` and its `tflite_models/` folder.
 Their default model is `model_int8_uint8_edgetpu_run_20260607_133850.tflite`;
-the unversioned model is the earlier deployment. See
+the unversioned model is the earlier deployment. The two-class test model is
+`model_int8_uint8_edgetpu_run_20261026_212630.tflite`; its labels live beside
+`labels.txt` as `labels_run_20261026_212630.txt` (0 RIGHT, 1 STRAIGHT).
+Select the model and matching labels explicitly when testing. See
 [model lineage](../aicam_laptop/MODEL_LINEAGE.json).
 
 Run one implementation at a time: they share port 5000, the camera, and the TPU
@@ -97,8 +100,46 @@ python3 line_tpu_server.py
 python3 line_cam_client.py --stream-url http://127.0.0.1:5000/video_feed
 ```
 
-The client shows prediction, confidence, latency, FPS, and stability. Add
-`--motor-url ESP32_BASE_URL` for lane control. To capture selected predictions:
+The client shows prediction, confidence, latency, FPS, and stability. Without
+`--motor-url`, it sends no motor requests.
+
+For the two-class model, start the TPU server with:
+
+```bash
+python3 line_tpu_server.py \
+  --model tflite_models/model_int8_uint8_edgetpu_run_20261026_212630.tflite
+```
+
+Then run the client without motors to inspect predictions:
+
+```bash
+python3 line_cam_client.py \
+  --stream-url http://127.0.0.1:5000/video_feed \
+  --labels labels_run_20261026_212630.txt
+```
+
+For motor tests, use raw predictions for timely turns. This setting was needed
+in the current hardware tests; the default stable mode delayed steering:
+
+```bash
+python3 line_cam_client.py \
+  --stream-url http://127.0.0.1:5000/video_feed \
+  --labels labels_run_20261026_212630.txt \
+  --motor-url ESP32_BASE_URL \
+  --motor-source raw --motor-min-stability 0
+```
+
+- `raw` uses the current prediction; default `stable` votes over eight predictions
+  and can keep STRAIGHT while recent raw predictions already indicate a turn.
+- `--motor-min-stability 0` disables the low-stability STOP gate. Its default is
+  0.7 and applies even with `raw`. Raw control passes prediction jitter through;
+  the exit STOP remains enabled.
+- For the June model, use its explicit `--model` path and `--labels labels.txt`
+  with the same motor options. The command used in June is not recorded.
+- `infer=...ms` measures TPU execution only. Motor HTTP requests block the client
+  loop; read timeouts are a separate source of control delay.
+
+To capture selected predictions:
 
 ```bash
 python3 line_cam_client.py --no-preview --save-pred LEFT

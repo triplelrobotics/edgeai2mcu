@@ -1,0 +1,5 @@
+outs:
+- md5: f7e99047c4e98c1fcd6d9c1ede6c4d1d
+  size: 133711360
+  hash: md5
+  path: edgetpu-compiler-16.0.384591198-linux-amd64.tar
